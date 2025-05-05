@@ -1,349 +1,1335 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Merchant Payment Cost Visualizer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #1E1B4B, #2E1065);
-      color: #E5E7EB;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>European Payment Methods Statistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Add map colors as CSS variables */
+        :root {
+            --blue: #4a90e2;
+            --purple: #9b6eda;
+            --pink: #e07a9d;
+            --green: #68c087;
+            --yellow: #f5d76e;
+            --orange: #f39c12;
+            --red: #e74c3c;
+            --cyan: #48c9b0;
+            --indigo: #5d4db5;
+            --teal: #20c997;
+            --brown: #a57d5c;
+            --gold: #ffd700;
+            --lime: #98cd41;
+            --maroon: #85144b;
+            --olive: #8aa832;
+            --coral: #ff7f50;
+            --slate: #708090;
+            --navy: #001f3f;
+            --plum: #dda0dd;
+            --text-color: #edf2f7;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1E1B4B, #2E1065);
+            color: #E5E7EB;
+            min-height: 100vh;
+            padding-top: 64px; /* Add space for fixed navbar */
+        }
+
+            .map-container {
+                @apply relative w-full;
+                max-width: min(95vw, 800px);
+                background: rgba(30, 27, 75, 0.8);
+                backdrop-filter: blur(12px);
+                margin: 1rem auto;
+                justify-content: flex-start;
+                box-shadow: 
+                    0 8px 32px rgba(0, 0, 0, 0.1),
+                    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+                    inset 0 0 20px rgba(74, 144, 226, 0.1);
+                position: relative;
+                overflow: hidden;
+                cursor: grab;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+                display: flex;
+                align-items: center;
+                will-change: transform;
+                transform: translateZ(0);
+                height: 70vh;
+            }
+
+            @media (max-width: 768px) {
+                .map-container {
+                    height: 80vh;
+                    margin: 0.5rem auto;
+                }
+            }
+
+        .map-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .map-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .map-container::-webkit-scrollbar-thumb {
+            background-color: rgba(74, 144, 226, 0.5);
+            border-radius: 3px;
+        }
+
+
+        object {
+            @apply w-auto filter drop-shadow-lg rounded-xl transition-all duration-300;
+            display: block;
+            overflow: visible;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            transform: scale(1);
+            transform-origin: left center;
+        }
+
+        @media (max-width: 768px) {
+            object {
+                transform: scale(1.8);
+                transform-origin: left center;
+                width: 180%;
+                max-width: none;
+                height: 100%;
+                object-fit: contain;
+            }
+        }
+
+        #mapObject {
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+
+        .info-popup {
+            position: fixed !important;
+            background: rgba(26, 38, 52, 0.98) !important;
+            border: 1px solid rgba(74, 144, 226, 0.3) !important;
+            border-radius: 8px !important;
+            padding: 15px !important;
+            font-size: 14px !important;
+            color: var(--text-color) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+            backdrop-filter: blur(10px) !important;
+            display: none;
+            max-width: 300px !important;
+            width: auto !important;
+            z-index: 9999 !important;
+            transition: all 0.3s ease !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        .info-popup[style*="display: block"] {
+            display: block !important;
+            pointer-events: all !important;
+            transform: translateZ(0) !important;
+        }
+
+        /* Style override for show/hide state */
+        .info-popup.show {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        @media (max-width: 768px) {
+            body::after {
+                content: '';
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                background: rgba(0, 0, 0, 0.5) !important;
+                z-index: 9998 !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                transition: opacity 0.3s ease !important;
+                display: none !important;
+            }
+
+            body.popup-visible::after {
+                display: block !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+
+            .info-popup {
+                position: fixed !important;
+                width: 85% !important;
+                max-width: 300px !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+                margin: 0 !important;
+                z-index: 999 !important;
+                background: linear-gradient(135deg, rgba(26, 38, 52, 0.95), rgba(26, 38, 52, 0.98)) !important;
+                backdrop-filter: blur(10px) !important;
+                max-height: 80vh !important;
+                overflow-y: auto !important;
+                overscroll-behavior: contain !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding: 20px !important;
+            }
+
+            .map-container {
+                @apply m-2 p-2;
+                width: 95vw !important;
+                max-width: none !important;
+                overflow-x: auto !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: pan-x !important;
+                position: relative !important; 
+                will-change: transform !important; 
+                transform: translateZ(0) !important;
+                scroll-snap-type: none !important;
+                justify-content: flex-start !important;
+            } 
+            
+            .map-container > div { 
+                transform: translateZ(0) !important; 
+            }
+        }
+
+        .info-popup h3 {
+            margin: 0 0 10px 0 !important;
+            color: var(--text-color) !important;
+            font-weight: 600 !important;
+            padding-right: 30px !important;
+        }
+
+        .close-btn {
+            position: absolute !important;
+            right: 10px !important;
+            top: 10px !important;
+            width: 30px !important;
+            height: 30px !important;
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-color) !important;
+            font-size: 20px !important;
+            cursor: pointer !important;
+            padding: 0 !important;
+            opacity: 0.7 !important;
+            transition: opacity 0.3s !important;
+            z-index: 2 !important;
+            display: block !important;
+        }
+
+        .close-btn:hover {
+            opacity: 1 !important;
+        }
+
+        .info-popup #popupContent {
+            margin: 0 !important;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+        }
+
+        .payment-stat {
+            display: flex !important;
+            align-items: center !important;
+            margin: 8px 0 !important;
+            padding: 6px 10px !important;
+            border-radius: 4px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            font-size: 13px !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .payment-stat:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateX(4px) !important;
+        }
+
+        .payment-stat i {
+            margin-right: 10px !important;
+            font-size: 16px !important;
+            width: 20px !important;
+            text-align: center !important;
+        }
+
+        .stat-label {
+            flex: 1 !important;
+            font-weight: 500 !important;
+        }
+
+        .stat-value {
+            font-weight: bold !important;
+            color: var(--text-color) !important;
+        }
+
+        .payment-cards i { color: #4a90e2 !important; }
+        .payment-digital i { color: #68c087 !important; }
+        .payment-transfer i { color: #f5d76e !important; }
+        .payment-cash i { color: #e07a9d !important; }
+        .payment-other i { color: #9b6eda !important; }
+
+        .domestic-scheme {
+            margin-top: 15px !important;
+            padding: 10px !important;
+            background: rgba(74, 144, 226, 0.1) !important;
+            border-radius: 6px !important;
+            border-left: 3px solid var(--blue) !important;
+            font-size: 13px !important;
+        }
+
+        .domestic-scheme strong {
+            display: block !important;
+            margin-bottom: 5px !important;
+            color: var(--blue) !important;
+        }
+
+/* Navigation styles with Tailwind */
+nav {
+    @apply fixed top-0 left-0 right-0 z-50 bg-[#1a2634] border-b border-gray-800;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.nav-container {
+    @apply max-w-7xl mx-auto px-4 flex items-center justify-between h-16;
+}
+
+.site-title {
+    @apply text-xl font-bold text-white m-0;
+}
+
+.desktop-nav {
+    @apply hidden md:flex space-x-4;
+}
+
+.desktop-nav a {
+    @apply px-4 py-2 rounded-lg text-white transition-colors duration-300 hover:bg-blue-500/20;
+}
+
+.desktop-nav a.active {
+    @apply bg-blue-600;
+}
+
+.mobile-menu-btn {
+    @apply md:hidden bg-transparent border-0 text-white cursor-pointer p-2 rounded-md flex items-center justify-center hover:bg-white/10;
+}
+
+#mobile-menu {
+    display: none;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 9999;
+    background-color: #1a2634;
+    border-top: 1px solid rgba(74, 144, 226, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    padding: 8px;
+}
+
+#mobile-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+#mobile-menu a {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10000 !important;
+}
+
+body.menu-open {
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    body.menu-open::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        opacity: 1;
+        transition: opacity 0.3s ease;
     }
-    .glass-card {
-      background: rgba(30, 27, 75, 0.8);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideDown {
+    from { 
+        opacity: 0;
+        transform: translateY(-10px);
     }
-    .table-header {
-      background: linear-gradient(to right, #6366F1, #EC4899);
-      color: white;
-      cursor: pointer;
-      line-height: 1.3;
-      position: sticky;
-      top: 0;
-      z-index: 30;
+    to { 
+        opacity: 1;
+        transform: translateY(0);
     }
-    .table-row {
-      animation: fadeIn 0.3s ease-in;
-      line-height: 1.3;
+}
+
+#mobile-menu a {
+    @apply block px-4 py-3 mb-2 rounded-lg text-center text-white no-underline transition-colors duration-300 hover:bg-blue-500/20 last:mb-0;
+}
+
+#mobile-menu a.active {
+    @apply bg-blue-600;
+}
+
+.content-wrapper {
+    @apply pt-20;
+}
+
+body.menu-open {
+    @apply overflow-hidden;
+}
+
+body.menu-open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    z-index: 998;
+    animation: fadeIn 0.3s ease forwards;
+    pointer-events: auto;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+body.menu-open #mobile-menu {
+    animation: slideDown 0.3s ease forwards;
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+}
+
+@keyframes slideDown {
+    from { 
+        transform: translateY(-8px);
+        opacity: 0;
     }
-	/* Juste pour le thumb */
-	.slider::-webkit-slider-thumb {
-	  -webkit-appearance: none;
-	  appearance: none;
-	  height: 1rem;
-	  width: 1rem;
-	  border-radius: 9999px;
-	  background-color: #A855F7; /* Tailwind's purple-500 */
-	  cursor: pointer;
-	}
-	.slider::-moz-range-thumb {
-	  height: 1rem;
-	  width: 1rem;
-	  border-radius: 9999px;
-	  background-color: #A855F7;
-	  cursor: pointer;
-	  border: none;
-	}
-    .logo-img {
-      width: 25px;
-      height: 25px;
-      object-fit: contain;
-      transition: transform 0.2s;
-      background: #1E1B4B;
+    to { 
+        transform: translateY(0);
+        opacity: 1;
     }
-    .fixed-column {
-      position: sticky !important;
-      left: 0 !important;
-      background: #1E1B4B;
-      border-right: 1px solid #4B5563;
-      z-index: 10;
-      min-width: 160px;
-    }
-    th.fixed-column {
-      z-index: 25;
-    }
-    table {
-      text-align: center;
-    }
-	.header-container {
-      text-align: center;
-    }
-    .tooltip {
-      position: relative;
-      user-select: none;
-    }
-    .tooltip-span {
-      user-select: none;
-    }
-    .tooltip-div {
-      position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1E1B4B;
-      color: #E5E7EB;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: nowrap;
-      z-index: 30;
-      pointer-events: none;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  </style>
+}
+    </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-2">
-  <div class="w-full max-w-7xl p-6 glass-card rounded-2xl shadow-xl mt-8">
-	<div class="header-container">
-		<h1 class="text-3xl font-bold mb-4 bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">
-		  Merchant Payment Cost Visualizer
-		</h1>
-	</div>
-    <p class="text-gray-300 mb-6">
-      Explore merchant costs for payment methods and schemes. Adjust sliders to see cost impacts, click headers to sort, and observe color-coded costs.
-    </p>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1a2634] border-b border-gray-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+          <div class="flex items-center justify-between h-16">
+        <h1 class="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text" style="background-clip: text; -webkit-background-clip: text;">Payment Statistics</h1>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex space-x-4">
+              <a href="index.html" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors font-medium">
+                European Map
+              </a>
+              <a href="merchant_fees.html" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors font-medium">
+                Merchant Fees
+              </a>
+            </div>
+    
+            <!-- Mobile Navigation Button -->
+            <div class="md:hidden">
+              <button id="mobile-menu-button" class="text-gray-300 hover:text-white p-2 rounded-lg transition-colors">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 absolute w-full bg-[#1a2634] shadow-lg">
+          <div class="px-2 pt-2 pb-3 space-y-2">
+            <a href="index.html" class="block px-4 py-2.5 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors font-medium text-center">
+              European Map
+            </a>
+            <a href="merchant_fees.html" class="block px-4 py-2.5 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors font-medium text-center">
+              Merchant Fees
+            </a>
+          </div>
+        </div>
+      </nav>
 
-    <!-- Sliders -->
-    <div class="mb-6">
-      <div class="mb-2 flex items-center">
-        <label for="volume-slider" class="flex-1 text-sm font-medium text-gray-300">Transaction Volume (per month):</label>
-        <span id="volume-value" class="inline-block w-20 text-right text-sm text-gray-300">1000</span>
-      </div>
-      <input type="range" id="volume-slider" min="100" max="10000" step="100" value="1000" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-      <div class="mt-4 mb-2 flex items-center">
-        <label for="amount-slider" class="flex-1 text-sm font-medium text-gray-300">Average Transaction Amount (€):</label>
-        <span id="amount-value" class="inline-block w-20 text-right text-sm text-gray-300">50</span>
-      </div>
-      <input type="range" id="amount-slider" min="10" max="500" step="10" value="50" class="slider w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+    <div class="w-full flex flex-col items-center mt-4 md:mt-8">
+        <h1 class="text-3xl font-bold text-center mb-4 md:mb-8 bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent main-title" style="background-clip: text; -webkit-background-clip: text;">European Payment Methods</h1>
+        <div class="map-container">
+            <div style="width: 100%; height: 100%; display: flex; justify-content: flex-start; align-items: center; pointer-events: none;">
+                <object id="mapObject" data="europe.svg" type="image/svg+xml" style="pointer-events: all;"></object>
+            </div>
+        </div>
     </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto rounded-lg border border-gray-700">
-      <table id="payment-table" class="w-full border-collapse">
-        <thead>
-          <tr class="table-header">
-            <th class="px-0.5 py-1.5 text-sm font-semibold fixed-column text-center" data-sort="method">Payment Method / Scheme</th>
-            <th class="p-2 text-sm font-semibold" data-sort="percentFee">Percentage Fee (%)</th>
-            <th class="p-2 text-sm font-semibold" data-sort="fixedFee">Fixed Fee (€)</th>
-            <th class="p-2 text-sm font-semibold" data-sort="perTransactionCost">Per-Transaction Cost (€)</th>
-            <th class="p-2 text-sm font-semibold" data-sort="totalCost">Total Cost (€)</th>
-          </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-      </table>
+    <div id="infoPopup" class="info-popup">
+        <button class="close-btn" id="closePopupBtn">×</button>
+        <h3></h3>
+        <div id="popupContent"></div>
     </div>
-  </div>
 
-  <script>
-    const paymentMethods = [
-      { method: "Card (Online)", scheme: "CB", percentFee: 0.9, fixedFee: 0.10, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/LOGO_CB_BBR_rvb_BIG.svg/1200px-LOGO_CB_BBR_rvb_BIG.svg.png" },
-      { method: "Card (Online)", scheme: "Visa", percentFee: 1.5, fixedFee: 0.20, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" },
-      { method: "Card (Online)", scheme: "Mastercard", percentFee: 1.5, fixedFee: 0.20, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" },
-      { method: "Card (Online)", scheme: "Amex", percentFee: 2.5, fixedFee: 0.30, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" },
-      { method: "Card (Online)", scheme: "Dankort", percentFee: 0.5, fixedFee: 0.05, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/51/Dankort_logo.png" },
-      { method: "Card (Online)", scheme: "Bancomat", percentFee: 1.0, fixedFee: 0.10, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/en/0/03/Bancomat_logo.png" },
-      { method: "Card (Online)", scheme: "BankAxept", percentFee: 0.6, fixedFee: 0.05, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/f/f2/BankAxept_logo.png" },
-      { method: "Card (Online)", scheme: "Girocard", percentFee: 1.1, fixedFee: 0.15, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Girocard-zeichen.svg/2048px-Girocard-zeichen.svg.png" },
-      { method: "Card (Online)", scheme: "UnionPay", percentFee: 1.9, fixedFee: 0.20, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/UnionPay_logo.svg/2560px-UnionPay_logo.svg.png" },
-      { method: "Contactless", scheme: "CB", percentFee: 0.9, fixedFee: 0.12, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/LOGO_CB_BBR_rvb_BIG.svg/1200px-LOGO_CB_BBR_rvb_BIG.svg.png" },
-      { method: "Contactless", scheme: "Visa", percentFee: 1.5, fixedFee: 0.22, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" },
-      { method: "Contactless", scheme: "Mastercard", percentFee: 1.5, fixedFee: 0.22, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" },
-      { method: "Contactless", scheme: "Amex", percentFee: 2.5, fixedFee: 0.32, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" },
-      { method: "Contactless", scheme: "Dankort", percentFee: 0.5, fixedFee: 0.06, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/51/Dankort_logo.png" },
-      { method: "Contactless", scheme: "Bancomat", percentFee: 1.0, fixedFee: 0.12, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/en/0/03/Bancomat_logo.png" },
-      { method: "Contactless", scheme: "BankAxept", percentFee: 0.6, fixedFee: 0.06, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/f/f2/BankAxept_logo.png" },
-      { method: "Contactless", scheme: "Girocard", percentFee: 1.2, fixedFee: 0.17, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Girocard-zeichen.svg/2048px-Girocard-zeichen.svg.png" },
-      { method: "Contactless", scheme: "UnionPay", percentFee: 1.9, fixedFee: 0.22, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/UnionPay_logo.svg/2560px-UnionPay_logo.svg.png" },
-      { method: "Digital Wallet", scheme: "Apple Pay", percentFee: 1.6, fixedFee: 0.25, methodLogo: "https://img.icons8.com/color/18/wallet.png", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Apple_Pay_logo.svg/1200px-Apple_Pay_logo.svg.png" },
-      { method: "Digital Wallet", scheme: "Google Pay", percentFee: 1.6, fixedFee: 0.25, methodLogo: "https://img.icons8.com/color/18/wallet.png", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/1280px-Google_Pay_Logo.svg.png" },
-      { method: "Instant Payment", scheme: "WERO", percentFee: 1.2, fixedFee: 0.15, methodLogo: "https://cdn.vectorstock.com/i/500p/11/54/coin-symbol-dollar-icon-money-sign-vector-38711154.jpg", schemeLogo: "https://wcmassets.cbc.be/content/dam/kdl-assets/logos/w/logos-wero.svg.cdn.res/last-modified/1723638836231/logos-wero.svg" },
-      { method: "Funds transfer", scheme: "iDEAL", percentFee: 0.0, fixedFee: 0.29, methodLogo: "https://img.icons8.com/?size=100&id=TWip3qmg8ymf&format=png&color=FFFFFF", schemeLogo: "https://img.icons8.com/?size=100&id=BwCBZg0AyKDQ&format=png&color=FFFFFF" },
-      { method: "PayPal", scheme: "", percentFee: 2.9, fixedFee: 0.35, methodLogo: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg", schemeLogo: "" },
-      { method: "BNPL", scheme: "Klarna", percentFee: 3.2, fixedFee: 0.40, methodLogo: "https://img.icons8.com/color/18/installment-plan.png", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Klarna_Payment_Badge.svg/2560px-Klarna_Payment_Badge.svg.png" },
-      { method: "Mobile Payment", scheme: "Alipay", percentFee: 2.8, fixedFee: 0.30, methodLogo: "https://img.icons8.com/color/18/mobile-payment.png", schemeLogo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_Giq5y_q-At4uV54lh1W4ThpRAszRli2l9A&s" },
-      { method: "Mobile Payment", scheme: "WeChat Pay", percentFee: 2.8, fixedFee: 0.30, methodLogo: "https://img.icons8.com/color/18/mobile-payment.png", schemeLogo: "https://brandlogos.net/wp-content/uploads/2018/10/wechat-pay-logo.png" }
-    ].map(method => ({
-      ...method,
-      sortKey: method.method.toLowerCase() + method.scheme.toLowerCase()
-    }));
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+            const popup = document.getElementById('infoPopup');
+            const mapObject = document.getElementById('mapObject');
+            const closeBtn = document.getElementById('closePopupBtn');
 
-    // Slider and table elements
-    const volumeSlider = document.getElementById('volume-slider');
-    const amountSlider = document.getElementById('amount-slider');
-    const volumeValue = document.getElementById('volume-value');
-    const amountValue = document.getElementById('amount-value');
-    const tableBody = document.getElementById('table-body');
-    const headers = document.querySelectorAll('#payment-table th');
+            let activeCountry = null;
 
-    let sortKey = 'totalCost';
-    let sortDirection = 1; // 1 for ascending, -1 for descending
+            // Close popup when close button is clicked
+            closeBtn.addEventListener('click', () => {
+                popup.style.display = 'none';
+                isPopupVisible = false;
+                document.body.classList.remove('popup-visible');
+                if (activeCountry) {
+                    const info = bankingInfo[activeCountry.id.substring(1)];
+                    if (info) {
+                        const color = cssVars[`--${info.color}`];
+                        resetCountryStyle(activeCountry, color);
+                    }
+                    activeCountry = null;
+                }
+            });
+            let cssVars = {};
+            let isMobileDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            let isPopupVisible = false;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            // Get CSS variables
+            const rootStyles = getComputedStyle(document.documentElement);
+            cssVars = {
+                '--blue': rootStyles.getPropertyValue('--blue').trim(),
+                '--purple': rootStyles.getPropertyValue('--purple').trim(),
+                '--pink': rootStyles.getPropertyValue('--pink').trim(),
+                '--green': rootStyles.getPropertyValue('--green').trim(),
+                '--yellow': rootStyles.getPropertyValue('--yellow').trim(),
+                '--orange': rootStyles.getPropertyValue('--orange').trim(),
+                '--red': rootStyles.getPropertyValue('--red').trim(),
+                '--cyan': rootStyles.getPropertyValue('--cyan').trim(),
+                '--indigo': rootStyles.getPropertyValue('--indigo').trim(),
+                '--teal': rootStyles.getPropertyValue('--teal').trim(),
+                '--brown': rootStyles.getPropertyValue('--brown').trim(),
+                '--gold': rootStyles.getPropertyValue('--gold').trim(),
+                '--lime': rootStyles.getPropertyValue('--lime').trim(),
+                '--maroon': rootStyles.getPropertyValue('--maroon').trim(),
+                '--olive': rootStyles.getPropertyValue('--olive').trim(),
+                '--coral': rootStyles.getPropertyValue('--coral').trim(),
+                '--slate': rootStyles.getPropertyValue('--slate').trim(),
+                '--navy': rootStyles.getPropertyValue('--navy').trim(),
+                '--plum': rootStyles.getPropertyValue('--plum').trim()
+            };
+            
+            // Banking network information by country code
+            const bankingInfo = {
+                FRA: {
+                    title: 'France (FRA) - Payment Methods',
+                    content: 'Cards: 65%\nDigital/Mobile: 15%\nBank Transfer: 10%\nCash: 8%\nOther: 2%\n\nDomestic Scheme: Cartes Bancaires (CB)\nKey Feature: National interbank network',
+                    color: 'blue'
+                },
+                DEU: {
+                    title: 'Germany (DEU) - Payment Methods',
+                    content: 'Cards: 40%\nDigital/Mobile: 13%\nBank Transfer: 32%\nCash: 12%\nOther: 3%\n\nDomestic Scheme: Girocard\nKey Feature: Former EC card system',
+                    color: 'red'
+                },
+                ITA: {
+                    title: 'Italy (ITA) - Payment Methods',
+                    content: 'Cards: 45%\nDigital/Mobile: 12%\nBank Transfer: 23%\nCash: 18%\nOther: 2%\n\nDomestic Scheme: PagoBANCOMAT\nKey Feature: National debit card system',
+                    color: 'green'
+                },
+                ESP: {
+                    title: 'Spain (ESP) - Payment Methods',
+                    content: 'Cards: 54%\nDigital/Mobile: 14%\nBank Transfer: 18%\nCash: 12%\nOther: 2%\n\nDomestic Scheme: Sistema de Tarjetas y Medios de Pago\nKey Feature: Merged Sistema 4B & ServiRed',
+                    color: 'yellow'
+                },
+                PRT: {
+                    title: 'Portugal (PRT) - Payment Methods',
+                    content: 'Cards: 52%\nDigital/Mobile: 11%\nBank Transfer: 24%\nCash: 11%\nOther: 2%\n\nDomestic Scheme: Multibanco\nKey Feature: Universal ATM/payment network',
+                    color: 'orange'
+                },
+                GBR: {
+                    title: 'United Kingdom (GBR) - Payment Methods',
+                    content: 'Cards: 68%\nDigital/Mobile: 18%\nBank Transfer: 8%\nCash: 4%\nOther: 2%\n\nDomestic Network: LINK (ATMs)\nKey Feature: National ATM network',
+                    color: 'purple'
+                },
+                NLD: {
+                    title: 'Netherlands (NLD) - Payment Methods',
+                    content: 'Cards: 45%\nDigital/Mobile: 25%\nBank Transfer: 20%\nCash: 8%\nOther: 2%\n\nDomestic Scheme: iDEAL\nKey Feature: Dominant online payment method',
+                    color: 'pink'
+                },
+                BEL: {
+                    title: 'Belgium (BEL) - Payment Methods',
+                    content: 'Cards: 58%\nDigital/Mobile: 16%\nBank Transfer: 15%\nCash: 9%\nOther: 2%\n\nDomestic Scheme: Bancontact\nKey Feature: National debit card system',
+                    color: 'cyan'
+                },
+                CHE: {
+                    title: 'Switzerland (CHE) - Payment Methods',
+                    content: 'Cards: 55%\nDigital/Mobile: 15%\nBank Transfer: 18%\nCash: 10%\nOther: 2%\n\nDomestic Schemes: PostFinance Card, TWINT\nKey Feature: Mobile payment integration',
+                    color: 'indigo'
+                },
+                DNK: {
+                    title: 'Denmark (DNK) - Payment Methods',
+                    content: 'Cards: 62%\nDigital/Mobile: 20%\nBank Transfer: 12%\nCash: 4%\nOther: 2%\n\nDomestic Scheme: Dankort\nKey Feature: National debit card',
+                    color: 'teal'
+                },
+                SWE: {
+                    title: 'Sweden (SWE) - Payment Methods',
+                    content: 'Cards: 58%\nDigital/Mobile: 28%\nBank Transfer: 10%\nCash: 2%\nOther: 2%\n\nDomestic System: Swish\nKey Feature: Mobile payment system',
+                    color: 'brown'
+                },
+                NOR: {
+                    title: 'Norway (NOR) - Payment Methods',
+                    content: 'Cards: 60%\nDigital/Mobile: 25%\nBank Transfer: 11%\nCash: 2%\nOther: 2%\n\nDomestic System: BankAxept\nKey Feature: National payment network',
+                    color: 'gold'
+                },
+                FIN: {
+                    title: 'Finland (FIN) - Payment Methods',
+                    content: 'Cards: 56%\nDigital/Mobile: 24%\nBank Transfer: 15%\nCash: 3%\nOther: 2%\n\nDomestic Network: Siirto\nKey Feature: Real-time payments',
+                    color: 'lime'
+                },
+                POL: {
+                    title: 'Poland (POL) - Payment Methods',
+                    content: 'Cards: 45%\nDigital/Mobile: 15%\nBank Transfer: 28%\nCash: 10%\nOther: 2%\n\nDomestic System: BLIK\nKey Feature: Mobile payment system',
+                    color: 'maroon'
+                },
+                AUT: {
+                    title: 'Austria (AUT) - Payment Methods',
+                    content: 'Cards: 48%\nDigital/Mobile: 15%\nBank Transfer: 25%\nCash: 10%\nOther: 2%\n\nDomestic Cards: Maestro/Debit Mastercard\nKey Feature: Strong debit card usage',
+                    color: 'olive'
+                },
+                CZE: {
+                    title: 'Czech Republic (CZE) - Payment Methods',
+                    content: 'Cards: 42%\nDigital/Mobile: 15%\nBank Transfer: 30%\nCash: 11%\nOther: 2%\n\nKey Feature: Growing contactless adoption',
+                    color: 'coral'
+                },
+                HUN: {
+                    title: 'Hungary (HUN) - Payment Methods',
+                    content: 'Cards: 40%\nDigital/Mobile: 12%\nBank Transfer: 28%\nCash: 18%\nOther: 2%\n\nKey Feature: Developing instant payments',
+                    color: 'slate'
+                },
+                ROU: {
+                    title: 'Romania (ROU) - Payment Methods',
+                    content: 'Cards: 35%\nDigital/Mobile: 10%\nBank Transfer: 25%\nCash: 28%\nOther: 2%\n\nKey Feature: Rapid digital adoption',
+                    color: 'navy'
+                },
+                HRV: {
+                    title: 'Croatia (HRV) - Payment Methods',
+                    content: 'Cards: 38%\nDigital/Mobile: 12%\nBank Transfer: 28%\nCash: 20%\nOther: 2%\n\nKey Feature: Growing card acceptance',
+                    color: 'plum'
+                },
+                SVK: {
+                    title: 'Slovakia (SVK) - Payment Methods',
+                    content: 'Cards: 45%\nDigital/Mobile: 15%\nBank Transfer: 25%\nCash: 13%\nOther: 2%\n\nKey Feature: Growing digital payments',
+                    color: 'teal'
+                },
+                BGR: {
+                    title: 'Bulgaria (BGR) - Payment Methods',
+                    content: 'Cards: 35%\nDigital/Mobile: 12%\nBank Transfer: 28%\nCash: 23%\nOther: 2%\n\nDomestic System: BORICA\nKey Feature: National payment operator',
+                    color: 'brown'
+                },
+                GRC: {
+                    title: 'Greece (GRC) - Payment Methods',
+                    content: 'Cards: 42%\nDigital/Mobile: 10%\nBank Transfer: 23%\nCash: 23%\nOther: 2%\n\nDomestic System: DIAS\nKey Feature: Interbank payment system',
+                    color: 'lime'
+                },
+                IRL: {
+                    title: 'Ireland (IRL) - Payment Methods',
+                    content: 'Cards: 60%\nDigital/Mobile: 18%\nBank Transfer: 12%\nCash: 8%\nOther: 2%\n\nKey Feature: High card adoption',
+                    color: 'olive'
+                },
+                LTU: {
+                    title: 'Lithuania (LTU) - Payment Methods',
+                    content: 'Cards: 48%\nDigital/Mobile: 15%\nBank Transfer: 25%\nCash: 10%\nOther: 2%\n\nKey Feature: Advanced fintech ecosystem',
+                    color: 'coral'
+                },
+                LVA: {
+                    title: 'Latvia (LVA) - Payment Methods',
+                    content: 'Cards: 45%\nDigital/Mobile: 15%\nBank Transfer: 28%\nCash: 10%\nOther: 2%\n\nKey Feature: Digital payment growth',
+                    color: 'navy'
+                },
+                EST: {
+                    title: 'Estonia (EST) - Payment Methods',
+                    content: 'Cards: 52%\nDigital/Mobile: 20%\nBank Transfer: 20%\nCash: 6%\nOther: 2%\n\nKey Feature: Digital society leader',
+                    color: 'slate'
+                },
+                SVN: {
+                    title: 'Slovenia (SVN) - Payment Methods',
+                    content: 'Cards: 45%\nDigital/Mobile: 15%\nBank Transfer: 25%\nCash: 13%\nOther: 2%\n\nKey Feature: Strong electronic payments',
+                    color: 'maroon'
+                },
+                MDA: {
+                    title: 'Moldova (MDA) - Payment Methods',
+                    content: 'Cards: 30%\nDigital/Mobile: 8%\nBank Transfer: 22%\nCash: 38%\nOther: 2%\n\nKey Feature: Emerging digital payments',
+                    color: 'gold'
+                },
+                ALB: {
+                    title: 'Albania (ALB) - Payment Methods',
+                    content: 'Cards: 25%\nDigital/Mobile: 8%\nBank Transfer: 20%\nCash: 45%\nOther: 2%\n\nKey Feature: Growing card adoption',
+                    color: 'pink'
+                },
+                MKD: {
+                    title: 'North Macedonia (MKD) - Payment Methods',
+                    content: 'Cards: 32%\nDigital/Mobile: 10%\nBank Transfer: 23%\nCash: 33%\nOther: 2%\n\nKey Feature: Digital transformation',
+                    color: 'purple'
+                },
+                MNE: {
+                    title: 'Montenegro (MNE) - Payment Methods',
+                    content: 'Cards: 35%\nDigital/Mobile: 12%\nBank Transfer: 23%\nCash: 28%\nOther: 2%\n\nKey Feature: Modernizing payments',
+                    color: 'cyan'
+                },
+                SRB: {
+                    title: 'Serbia (SRB) - Payment Methods',
+                    content: 'Cards: 38%\nDigital/Mobile: 12%\nBank Transfer: 25%\nCash: 23%\nOther: 2%\n\nDomestic System: DinaCard\nKey Feature: National payment card',
+                    color: 'blue'
+                },
+                BIH: {
+                    title: 'Bosnia and Herzegovina (BIH) - Payment Methods',
+                    content: 'Cards: 32%\nDigital/Mobile: 10%\nBank Transfer: 23%\nCash: 33%\nOther: 2%\n\nKey Feature: Payment modernization',
+                    color: 'green'
+                },
+                ISL: {
+                    title: 'Iceland (ISL) - Payment Methods',
+                    content: 'Cards: 65%\nDigital/Mobile: 20%\nBank Transfer: 10%\nCash: 3%\nOther: 2%\n\nKey Feature: Highly digital society',
+                    color: 'teal'
+                }
+            };
 
-    // Debounce function
-    function debounce(fn, ms) {
-      let timeout;
-      return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn.apply(this, args), ms);
-      };
-    }
+            function showInfo(event, countryId) {
+                console.log('🔍 ShowInfo called for:', countryId);
+                console.log('📱 Is mobile device:', isMobileDevice);
 
-    // Function to map cost to green-to-red color (HSL)
-    function getCostColor(cost, minCost, maxCost) {
-      const ratio = (cost - minCost) / (maxCost - minCost || 1); // Avoid division by zero
-      const hue = 120 - (ratio * 120); // 120 (green) to 0 (red)
-      return `hsl(${hue}, 100%, 50%)`;
-    }
+                const svgDoc = mapObject.contentDocument;
+                if (!svgDoc) {
+                    console.error('❌ SVG document not found');
+                    return;
+                }
+                
+                const country = svgDoc.getElementById('g' + countryId);
+                const info = bankingInfo[countryId];
+                
+                if (!country || !info) {
+                    console.error('❌ Country or info not found:', { country, info });
+                    return;
+                }
 
-    // Calculate and update table
-    function updateTable(resetSort = false) {
-      const volume = parseInt(volumeSlider.value);
-      const amount = parseInt(amountSlider.value);
-      volumeValue.textContent = volume;
-      amountValue.textContent = amount;
+                if (isMobileDevice) {
+                    console.log('📱 Adding mobile overlay');
+                    document.body.classList.add('popup-visible');
+                    // Add click event on the semi-transparent overlay
+                    document.addEventListener('click', (e) => {
+                        if (e.target === document.body && isPopupVisible) {
+                            popup.style.display = 'none';
+                            isPopupVisible = false;
+                            document.body.classList.remove('popup-visible');
+                            if (activeCountry) {
+                                const info = bankingInfo[activeCountry.id.substring(1)];
+                                if (info) {
+                                    const color = cssVars[`--${info.color}`];
+                                    resetCountryStyle(activeCountry, color);
+                                }
+                                activeCountry = null;
+                            }
+                        }
+                    }, { once: true });
+                }
 
-      // Calculate costs
-      const costs = paymentMethods.map(method => {
-        const perTransactionCost = (method.percentFee / 100) * amount + method.fixedFee;
-        const totalCost = perTransactionCost * volume;
-        return { ...method, perTransactionCost, totalCost };
-      });
+                // Reset previous active country if exists
+                if (activeCountry) {
+                    const prevShapes = activeCountry.querySelectorAll('path, polygon');
+                    const prevInfo = bankingInfo[activeCountry.id.substring(1)];
+                    const prevColor = cssVars[`--${prevInfo.color}`];
+                    prevShapes.forEach(shape => {
+                        shape.style.cssText = `
+                            fill: ${prevColor} !important;
+                            stroke: ${prevColor} !important;
+                            stroke-width: 1px !important;
+                            opacity: 0.7 !important;
+                            filter: brightness(0.9) !important;
+                            transition: all 0.3s ease !important;
+                            cursor: pointer !important;
+                        `;
+                    });
+                }
+                
+                activeCountry = country;
 
-      // Find min/max for color coding
-      const perTransactionCosts = costs.map(c => c.perTransactionCost);
-      const totalCosts = costs.map(c => c.totalCost);
-      const minPerTransactionCost = Math.min(...perTransactionCosts);
-      const maxPerTransactionCost = Math.max(...perTransactionCosts);
-      const minTotalCost = Math.min(...totalCosts);
-      const maxTotalCost = Math.max(...totalCosts);
+                const content = info.content.split('\n');
+                const paymentData = {
+                    cards: content[0].split(': ')[1].replace('%', ''),
+                    digital: content[1].split(': ')[1].replace('%', ''),
+                    transfer: content[2].split(': ')[1].replace('%', ''),
+                    cash: content[3].split(': ')[1].replace('%', ''),
+                    other: content[4].split(': ')[1].replace('%', '')
+                };
 
-      // Sort by current key and direction with stable sorting
-      if (resetSort) {
-        sortKey = 'totalCost';
-        sortDirection = 1;
-      }
-      costs.sort((a, b) => {
-        let valA = a[sortKey];
-        let valB = b[sortKey];
-        if (sortKey === 'method') {
-          valA = a.sortKey;
-          valB = b.sortKey;
-        }
-        if (valA === valB) {
-          return a.sortKey > b.sortKey ? 1 : -1; // Stable tiebreaker
-        }
-        return (valA > valB ? 1 : -1) * sortDirection;
-      });
+                const domesticInfo = content.slice(6).join('\n');
 
-      // Update table using DocumentFragment
-      const fragment = document.createDocumentFragment();
-      costs.forEach(method => {
-        const row = document.createElement('tr');
-        row.className = 'table-row border-t border-gray-700';
-        row.innerHTML = `
-          <td class="px-0.5 py-1.5 text-sm text-gray-300 flex flex-col fixed-column justify-center">
-            <div class="flex items-center justify-center truncate tooltip" data-tooltip="${method.method}">
-              <img src="${method.methodLogo}" alt="${method.method} logo" class="logo-img mr-0.25">
-              <span class="truncate tooltip-span">${method.method}</span>
-            </div>
-            <div class="flex items-center justify-center mt-0.25 truncate tooltip" data-tooltip="${method.scheme}">
-              ${method.schemeLogo ? `<img src="${method.schemeLogo}" alt="${method.scheme} logo" class="logo-img mr-0.25">` : ''}
-              <span class="truncate tooltip-span">${method.scheme}</span>
-            </div>
-          </td>
-          <td class="p-2 text-sm text-gray-300">${method.percentFee.toFixed(2)}%</td>
-          <td class="p-2 text-sm text-gray-300">€${method.fixedFee.toFixed(2)}</td>
-          <td class="p-2 text-sm" style="color: ${getCostColor(method.perTransactionCost, minPerTransactionCost, maxPerTransactionCost)}">
-            €${method.perTransactionCost.toFixed(2)}
-          </td>
-          <td class="p-2 text-sm" style="color: ${getCostColor(method.totalCost, minTotalCost, maxTotalCost)}">
-            €${method.totalCost.toFixed(2)}
-          </td>
-        `;
-        fragment.appendChild(row);
-      });
-      tableBody.innerHTML = '';
-      tableBody.appendChild(fragment);
-    }
+                popup.querySelector('h3').textContent = info.title;
+                popup.querySelector('#popupContent').innerHTML = `
+                    <div class="payment-stat payment-cards">
+                        <i class="fas fa-credit-card"></i>
+                        <span class="stat-label">Cards</span>
+                        <span class="stat-value">${paymentData.cards}%</span>
+                    </div>
+                    <div class="payment-stat payment-digital">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span class="stat-label">Digital/Mobile</span>
+                        <span class="stat-value">${paymentData.digital}%</span>
+                    </div>
+                    <div class="payment-stat payment-transfer">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="stat-label">Bank Transfer</span>
+                        <span class="stat-value">${paymentData.transfer}%</span>
+                    </div>
+                    <div class="payment-stat payment-cash">
+                        <i class="fas fa-coins"></i>
+                        <span class="stat-label">Cash</span>
+                        <span class="stat-value">${paymentData.cash}%</span>
+                    </div>
+                    <div class="payment-stat payment-other">
+                        <i class="fas fa-ellipsis-h"></i>
+                        <span class="stat-label">Other</span>
+                        <span class="stat-value">${paymentData.other}%</span>
+                    </div>
+                    <div class="domestic-scheme">
+                        <strong><i class="fas fa-university"></i> Domestic Payment System</strong>
+                        ${domesticInfo}
+                    </div>
+                `;
+                
+                    // Position popup
+                if (isMobileDevice) {
+                    // For mobile, position at the top of the screen
+                    popup.style.cssText = `
+                        position: fixed !important;
+                        top: 74px !important;
+                        left: 50% !important;
+                        transform: translateX(-50%) !important;
+                        width: 90% !important;
+                        max-width: 320px !important;
+                        margin: 0 !important;
+                        z-index: 9999 !important;
+                        display: block !important;
+                        background: rgba(26, 38, 52, 0.98) !important;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+                        padding: 20px !important;
+                        border: 1px solid rgba(74, 144, 226, 0.3) !important;
+                        border-radius: 12px !important;
+                        pointer-events: auto !important;
+                        max-height: 80vh !important;
+                        overflow-y: auto !important;
+                        -webkit-overflow-scrolling: touch !important;
+                        backdrop-filter: blur(10px) !important;
+                    `;
 
-    // Debounced updateTable
-    const debouncedUpdateTable = debounce(updateTable, 50);
+                    // Add visible class for overlay
+                    document.body.classList.add('popup-visible');
+                } else {
+                    // For desktop, position to the right of the cursor
+                    const viewportWidth = window.innerWidth;
+                    const popupWidth = 320; // Estimated popup width
+                    
+                    // Calculate left position, prioritizing right side of cursor
+                    let left = event.clientX + 20;
+                    // If popup would overflow right edge, position to the left of cursor
+                    if (left + popupWidth > viewportWidth - 20) {
+                        left = event.clientX - popupWidth - 20;
+                    }
+                    
+                    // Calculate top position to align vertically with cursor
+                    const top = Math.min(event.clientY - 20, window.innerHeight - 400);
+                    
+                    popup.style.cssText = `
+                        position: fixed !important;
+                        left: ${left}px !important;
+                        top: ${top}px !important;
+                        transform: translateZ(0) !important;
+                        z-index: 9999 !important;
+                        display: block !important;
+                        background: rgba(26, 38, 52, 0.98) !important;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+                        padding: 15px !important;
 
-    // Add sorting to headers
-    headers.forEach(header => {
-      header.addEventListener('click', () => {
-        const newSortKey = header.getAttribute('data-sort');
-        if (newSortKey === sortKey) {
-          sortDirection *= -1; // Toggle direction
-        } else {
-          sortKey = newSortKey;
-          sortDirection = 1; // Reset to ascending
-        }
-        updateTable();
-      });
-    });
+                        pointer-events: auto !important;
+                        max-height: calc(100vh - 100px) !important;
+                        overflow-y: auto !important;
+                        backdrop-filter: blur(10px) !important;
+                        width: auto !important;
+                        max-width: 320px !important;
+                    `;
+                }
 
-    // Event listeners for sliders
-	let rafId = null;
-	function scheduleUpdate() {
-	  if (rafId) cancelAnimationFrame(rafId);
-	  rafId = requestAnimationFrame(() => {
-		updateTable();
-		rafId = null;
-	  });
-	}
+                // Ensure close button is visible
+                const closeBtn = popup.querySelector('.close-btn');
+                if (closeBtn) {
+                    closeBtn.setAttribute('style', 'display: block !important;');
+                }
 
-	volumeSlider.addEventListener('input', scheduleUpdate);
-	amountSlider.addEventListener('input', scheduleUpdate);
+                // Add active class to control close button visibility
+                popup.classList.add('active');
+            }
 
+            // Variables for touch/drag functionality
+            let isDragging = false;
+            let startX;
+            let scrollLeft;
 
-    // Initial table render
-    updateTable();
-  </script>
+            mapObject.addEventListener('load', () => {
+                console.log('SVG object loaded');
+                const svgDoc = mapObject.contentDocument;
+                console.log('svgDoc:', svgDoc);
+
+                const container = document.querySelector('.map-container');
+
+                // Mouse events for desktop
+                container.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    container.style.cursor = 'grabbing';
+                    startX = e.pageX - container.offsetLeft;
+                    scrollLeft = container.scrollLeft;
+                });
+
+                container.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const x = e.pageX - container.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    container.scrollLeft = scrollLeft - walk;
+                });
+
+                container.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    container.style.cursor = 'grab';
+                });
+
+                container.addEventListener('mouseleave', () => {
+                    isDragging = false;
+                    container.style.cursor = 'grab';
+                });
+
+                // Touch events for mobile
+                container.addEventListener('touchstart', (e) => {
+                    isDragging = true;
+                    startX = e.touches[0].pageX - container.offsetLeft;
+                    scrollLeft = container.scrollLeft;
+                }, { passive: true });
+
+                container.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    const x = e.touches[0].pageX - container.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    container.scrollLeft = scrollLeft - walk;
+                }, { passive: true });
+
+                container.addEventListener('touchend', () => {
+                    isDragging = false;
+                }, { passive: true });
+                
+                if (!svgDoc) {
+                    console.error('⚠️ SVG contentDocument is null.');
+                    return;
+                }
+            
+                const svgElement = svgDoc.querySelector('svg');
+                if (!svgElement) {
+                    console.error('⚠️ No <svg> element found in the SVG document.');
+                    return;
+                }
+            
+                // Apply base styles to SVG
+                const baseStyleElement = document.createElement('style');
+                baseStyleElement.textContent = `
+                    path, polygon {
+                        transition: all 0.3s ease;
+                    }
+                `;
+                svgElement.appendChild(baseStyleElement);
+                
+                // Helper functions for country styling
+                function highlightCountry(element, color) {
+                    const shapes = element.querySelectorAll('path, polygon');
+                    shapes.forEach(shape => {
+                        shape.style.cssText = `
+                            fill: ${color} !important;
+                            stroke: ${color} !important;
+                            stroke-width: 1px !important;
+                            opacity: 1 !important;
+                            filter: brightness(1.1) drop-shadow(0 0 5px ${color}) !important;
+                            transition: all 0.3s ease !important;
+                            cursor: pointer !important;
+                        `;
+                    });
+                }
+
+                function resetCountryStyle(element, color) {
+                    if (!element || !color) return;
+                    const shapes = element.querySelectorAll('path, polygon');
+                    shapes.forEach(shape => {
+                        shape.style.cssText = `
+                            fill: ${color} !important;
+                            stroke: ${color} !important;
+                            stroke-width: 1px !important;
+                            opacity: 0.7 !important;
+                            filter: brightness(0.9) !important;
+                            transition: all 0.3s ease !important;
+                            cursor: pointer !important;
+                        `;
+                    });
+                }
+
+                // Add event listeners to countries
+                Object.keys(bankingInfo).forEach(countryId => {
+                    const countryElement = svgDoc.getElementById('g' + countryId);
+                    if (countryElement) {
+                        // Get all paths and polygons in the country group
+                        const shapes = countryElement.querySelectorAll('path, polygon');
+                        const info = bankingInfo[countryId];
+                        const color = cssVars[`--${info.color}`];
+                        
+                        shapes.forEach(shape => {
+                            // Override styles using cssText with !important
+                            shape.style.cssText = `
+                                fill: ${color} !important;
+                                stroke: ${color} !important;
+                                stroke-width: 1px !important;
+                                opacity: 0.7 !important;
+                                filter: brightness(0.9) !important;
+                                transition: all 0.3s ease !important;
+                                pointer-events: all !important;
+                                cursor: pointer !important;
+                            `;
+                        });
+
+                        // Add different event listeners based on device type
+                        if (isMobileDevice) {
+                            console.log('Setting up mobile touch events for:', countryId);
+                            // Mobile: Use enhanced touch events
+                            let touchTimeout;
+                            
+                            countryElement.addEventListener('touchstart', (e) => {
+                                // Prevent default behavior
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                const touch = e.touches[0];
+                                if (!touch) return;
+
+                                touchStartX = touch.clientX;
+                                touchStartY = touch.clientY;
+
+                                // Clear timeouts and ensure proper layering
+                                clearTimeout(touchTimeout);
+                                popup.style.cssText = 'display: none !important; z-index: 9999 !important;';
+
+                                // Handle country touch
+                                if (activeCountry === countryElement && isPopupVisible) {
+                                    // If currently active, deactivate
+                                    popup.style.cssText = 'display: none !important;';
+                                    isPopupVisible = false;
+                                    resetCountryStyle(countryElement, color);
+                                    document.body.classList.remove('popup-visible');
+                                    activeCountry = null;
+                                } else {
+                                    // Hide any existing popup first
+                                    popup.style.cssText = 'display: none !important;';
+
+                                    // Reset previous country if exists
+                                    if (activeCountry) {
+                                        const prevInfo = bankingInfo[activeCountry.id.substring(1)];
+                                        if (prevInfo) {
+                                            resetCountryStyle(activeCountry, cssVars[`--${prevInfo.color}`]);
+                                        }
+                                    }
+
+                                    // Setup current country
+                                    highlightCountry(countryElement, color);
+                                    const rect = mapObject.getBoundingClientRect();
+                                    const touchX = touchStartX - rect.left;
+                                    const touchY = touchStartY - rect.top;
+
+                                    // Show info with delay
+                                    setTimeout(() => {
+                                        showInfo({ clientX: touchX, clientY: touchY }, countryId);
+                                        isPopupVisible = true;
+                                        activeCountry = countryElement;
+                                    }, 50);
+                                }
+                            }, { passive: false });
+                            
+                            countryElement.addEventListener('touchmove', function(e) {
+                                const touch = e.touches[0];
+                                if (!touch) return;
+                                
+                                // If user has moved more than 10px, cancel the touch action
+                                const moveX = Math.abs(touch.clientX - touchStartX);
+                                const moveY = Math.abs(touch.clientY - touchStartY);
+                                
+                                if (moveX > 10 || moveY > 10) {
+                                    clearTimeout(touchTimeout);
+                                }
+                            });
+                            
+                            countryElement.addEventListener('touchend', function() {
+                                clearTimeout(touchTimeout);
+                            }, { passive: true });
+                        } else {
+                            // Desktop: Use hover events
+                            let hoverTimeout;
+                            countryElement.addEventListener('mouseenter', (e) => {
+                                clearTimeout(hoverTimeout);
+                                if (activeCountry !== countryElement) {
+                                    highlightCountry(countryElement, color);
+                                }
+                                showInfo(e, countryId);
+                                isPopupVisible = true;
+                            });
+                            
+                            countryElement.addEventListener('mouseleave', () => {
+                                if (!activeCountry || activeCountry !== countryElement) {
+                                    // Add small delay to prevent flickering during quick mouse movements
+                                    hoverTimeout = setTimeout(() => {
+                                        resetCountryStyle(countryElement, color);
+                                        popup.style.display = 'none';
+                                        isPopupVisible = false;
+                                    }, 50);
+                                }
+                            });
+
+                            // Click event for desktop to toggle permanent selection
+                            countryElement.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                clearTimeout(hoverTimeout); // Clear any pending hover timeouts
+                                if (activeCountry === countryElement) {
+                                    resetCountryStyle(countryElement, color);
+                                    popup.style.display = 'none';
+                                    isPopupVisible = false;
+                                    activeCountry = null;
+                                } else {
+                                    if (activeCountry) {
+                                        // Reset previous active country
+                                        const prevInfo = bankingInfo[activeCountry.id.substring(1)];
+                                        if (prevInfo) {
+                                            const prevColor = cssVars[`--${prevInfo.color}`];
+                                            resetCountryStyle(activeCountry, prevColor);
+                                        }
+                                    }
+                                    highlightCountry(countryElement, color);
+                                    showInfo(e, countryId);
+                                    isPopupVisible = true;
+                                    activeCountry = countryElement;
+                                }
+                            });
+                        }
+
+                        console.log(`Added events to ${countryId}`);
+                    } else {
+                        console.warn(`Country element ${countryId} not found in SVG`);
+                    }
+                });
+
+                // Handle clicks outside countries
+                const handleOutsideClick = (e) => {
+                    const isClickInsideSVG = e.target.closest('object') === mapObject;
+                    
+                    // Function to check if a point is inside any country's bounds
+                    const isPointInsideAnyCountry = (x, y) => {
+                        return Object.keys(bankingInfo).some(id => {
+                            const countryElement = svgDoc.getElementById('g' + id);
+                            if (!countryElement) return false;
+                            
+                            // Get all shapes in the country
+                            const shapes = countryElement.querySelectorAll('path, polygon');
+                            return Array.from(shapes).some(shape => {
+                                const rect = shape.getBoundingClientRect();
+                                return x >= rect.left && x <= rect.right && 
+                                       y >= rect.top && y <= rect.bottom;
+                            });
+                        });
+                    };
+
+                    // Check if the click is inside any country
+                    const isCountryClick = isClickInsideSVG && 
+                        isPointInsideAnyCountry(e.clientX, e.clientY);
+                    
+                    if ((!isClickInsideSVG || !isCountryClick) && activeCountry) {
+                        popup.style.display = 'none';
+                        isPopupVisible = false;
+                        document.body.classList.remove('popup-visible');
+                        try {
+                            const countryId = activeCountry.id.substring(1);
+                            const info = bankingInfo[countryId];
+                            if (info) {
+                                const color = cssVars[`--${info.color}`];
+                                resetCountryStyle(activeCountry, color);
+                            }
+                        } catch (error) {
+                            console.warn('Error resetting country style:', error);
+                        }
+                        activeCountry = null;
+                    }
+                };
+
+                // Add outside click/touch handlers
+                if (isMobileDevice) {
+                    document.addEventListener('touchstart', (e) => {
+                        const touch = e.touches[0];
+                        if (touch) {
+                            handleOutsideClick({
+                                clientX: touch.clientX,
+                                clientY: touch.clientY,
+                                target: touch.target
+                            });
+                        }
+                    }, { passive: true });
+                    svgDoc.addEventListener('touchstart', (e) => {
+                        const touch = e.touches[0];
+                        if (touch) {
+                            handleOutsideClick({
+                                clientX: touch.clientX,
+                                clientY: touch.clientY,
+                                target: touch.target
+                            });
+                        }
+                    }, { passive: true });
+                } else {
+                    document.addEventListener('click', handleOutsideClick);
+                    svgDoc.addEventListener('click', handleOutsideClick);
+                }
+            });
+        });
+    </script>
+
+    <!-- Navigation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = mobileMenuButton.querySelector('svg');
+            
+            // Initial menu state
+            let isMenuOpen = false;
+            
+            // Ensure mobile menu is properly hidden initially
+            mobileMenu.style.display = 'none';
+            mobileMenu.style.opacity = '0';
+            mobileMenu.style.transform = 'translateY(-8px)';
+            
+            // Helper function to close menu
+            function closeMenu() {
+                requestAnimationFrame(() => {
+                    mobileMenu.classList.remove('show');
+                    document.body.classList.remove('menu-open');
+                    isMenuOpen = false;
+                    
+                    // Change menu icon back to hamburger
+                    menuIcon.innerHTML = `
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    `;
+                    
+                    mobileMenu.style.opacity = '0';
+                    mobileMenu.style.transform = 'translateY(-8px)';
+                    
+                    // Wait for animation to complete before hiding and cleaning up
+                    setTimeout(() => {
+                        if (!isMenuOpen) {
+                            mobileMenu.style.display = 'none';
+                            mobileMenu.style.opacity = '';
+                            mobileMenu.style.transform = '';
+                            document.body.classList.remove('menu-open'); // Ensure menu-open is removed
+                        }
+                    }, 300);
+                });
+            }
+
+            // Clean up when leaving page
+            window.addEventListener('beforeunload', () => {
+                if (isMenuOpen) {
+                    document.body.classList.remove('menu-open');
+                }
+            });
+            
+            // Toggle mobile menu with animation
+            mobileMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                if (!isMenuOpen) {
+                    // Reset any leftover states
+                    document.body.classList.remove('menu-open');
+                    
+                    mobileMenu.style.cssText = 'display: block !important; pointer-events: auto !important;';
+                    requestAnimationFrame(() => {
+                        mobileMenu.classList.add('show');
+                        document.body.classList.add('menu-open');
+                        isMenuOpen = true;
+                        // Change menu icon to X
+                        menuIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        `;
+                    });
+                } else {
+                    closeMenu();
+                }
+            });
+
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (isMenuOpen && !mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                    closeMenu();
+                }
+            });
+            
+            // Handle ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isMenuOpen) {
+                    closeMenu();
+                }
+            });
+            
+            // Close menu on window resize
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && isMenuOpen) {
+                    closeMenu();
+                }
+            });
+            
+            // Handle menu item clicks
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    closeMenu();
+                });
+            });
+            
+            // Highlight current page
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            document.querySelectorAll('nav a').forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
