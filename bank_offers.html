@@ -360,78 +360,88 @@
 
     <!-- Filters -->
     <div class="glass-card rounded-2xl p-5 mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <!-- Search -->
-        <div class="md:col-span-2">
-          <input type="text" id="searchInput" placeholder="Rechercher une banque ou offre..."
-            class="filter-select w-full">
-        </div>
+      <!-- Mobile toggle button -->
+      <button id="mobileFiltersToggle" class="mobile-filters-toggle" onclick="toggleMobileFilters()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <span id="filtersToggleText">Afficher les filtres</span>
+      </button>
 
-        <!-- Bank Type -->
-        <select id="filterBankType" class="filter-select">
-          <option value="">Toutes les banques</option>
-          <option value="traditional">Traditionnelles</option>
-          <option value="online">En ligne</option>
-          <option value="neo">Neobanques</option>
-        </select>
+      <div id="filtersContent" class="filters-content">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <!-- Search -->
+          <div class="md:col-span-2">
+            <input type="text" id="searchInput" placeholder="Rechercher une banque ou offre..."
+              class="filter-select w-full">
+          </div>
 
-        <!-- Offer Type -->
-        <select id="filterOfferType" class="filter-select">
-          <option value="">Toutes les gammes</option>
-          <option value="basic">Essentiel</option>
-          <option value="premium">Premium</option>
-          <option value="black">Haut de gamme</option>
-        </select>
-
-        <!-- Free Card -->
-        <select id="filterFreeCard" class="filter-select">
-          <option value="">Prix de l'offre</option>
-          <option value="yes">Gratuites uniquement</option>
-          <option value="no">Payantes uniquement</option>
-        </select>
-
-        <!-- Free Abroad -->
-        <select id="filterFreeAbroad" class="filter-select">
-          <option value="">Frais a l'etranger</option>
-          <option value="yes">Sans frais de paiement</option>
-          <option value="no">Avec frais</option>
-        </select>
-
-        <!-- Insurance -->
-        <select id="filterInsurance" class="filter-select">
-          <option value="">Assurance voyage</option>
-          <option value="yes">Avec assurance</option>
-          <option value="no">Sans assurance</option>
-        </select>
-
-        <!-- Max Budget -->
-        <input type="number" id="maxBudget" placeholder="Budget max EUR/mois" class="filter-select">
-      </div>
-
-      <div class="flex flex-wrap justify-between items-center gap-4">
-        <button onclick="resetFilters()" class="btn-danger">
-          Reinitialiser les filtres
-        </button>
-
-        <div class="flex gap-2">
-          <button id="viewTable" onclick="setViewMode('table')" class="btn-secondary active">
-            Tableau
-          </button>
-          <button id="viewCards" onclick="setViewMode('cards')" class="btn-secondary">
-            Cartes
-          </button>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">Trier par :</span>
-          <select id="sortKey" class="filter-select" style="min-width: 120px;">
-            <option value="monthlyFee">Prix</option>
-            <option value="bank">Banque</option>
-            <option value="offerType">Gamme</option>
+          <!-- Bank Type -->
+          <select id="filterBankType" class="filter-select">
+            <option value="">Toutes les banques</option>
+            <option value="traditional">Traditionnelles</option>
+            <option value="online">En ligne</option>
+            <option value="neo">Neobanques</option>
           </select>
-          <button id="sortOrderBtn" onclick="toggleSortOrder()" class="btn-secondary">
-            <span id="sortArrow">&#8593;</span>
+
+          <!-- Offer Type -->
+          <select id="filterOfferType" class="filter-select">
+            <option value="">Toutes les gammes</option>
+            <option value="basic">Essentiel</option>
+            <option value="premium">Premium</option>
+            <option value="black">Haut de gamme</option>
+          </select>
+
+          <!-- Free Card -->
+          <select id="filterFreeCard" class="filter-select">
+            <option value="">Prix de l'offre</option>
+            <option value="yes">Gratuites uniquement</option>
+            <option value="no">Payantes uniquement</option>
+          </select>
+
+          <!-- Free Abroad -->
+          <select id="filterFreeAbroad" class="filter-select">
+            <option value="">Frais à l'étranger</option>
+            <option value="yes">Sans frais de paiement</option>
+            <option value="no">Avec frais</option>
+          </select>
+
+          <!-- Insurance -->
+          <select id="filterInsurance" class="filter-select">
+            <option value="">Assurance voyage</option>
+            <option value="yes">Avec assurance</option>
+            <option value="no">Sans assurance</option>
+          </select>
+
+          <!-- Max Budget -->
+          <input type="number" id="maxBudget" placeholder="Budget max EUR/mois" class="filter-select">
+        </div>
+
+        <div class="flex flex-wrap justify-between items-center gap-4">
+          <button onclick="resetFilters()" class="btn-danger">
+            Reinitialiser les filtres
           </button>
+
+          <div class="flex gap-2">
+            <button id="viewTable" onclick="setViewMode('table')" class="btn-secondary active">
+              Tableau
+            </button>
+            <button id="viewCards" onclick="setViewMode('cards')" class="btn-secondary">
+              Cartes
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">Trier par :</span>
+            <select id="sortKey" class="filter-select" style="min-width: 120px;">
+              <option value="monthlyFee">Prix</option>
+              <option value="bank">Banque</option>
+              <option value="offerType">Gamme</option>
+            </select>
+            <button id="sortOrderBtn" onclick="toggleSortOrder()" class="btn-secondary">
+              <span id="sortArrow">&#8593;</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -772,6 +782,21 @@
       document.getElementById('filterInsurance').value = '';
       document.getElementById('maxBudget').value = '';
       render();
+    }
+
+    function toggleMobileFilters() {
+      const filtersContent = document.getElementById('filtersContent');
+      const toggleBtn = document.getElementById('mobileFiltersToggle');
+      const toggleText = document.getElementById('filtersToggleText');
+
+      filtersContent.classList.toggle('show');
+      toggleBtn.classList.toggle('active');
+
+      if (filtersContent.classList.contains('show')) {
+        toggleText.textContent = 'Masquer les filtres';
+      } else {
+        toggleText.textContent = 'Afficher les filtres';
+      }
     }
 
     function openModal(offerId) {
