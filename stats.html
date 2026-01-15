@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord des Paiements en Europe 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .neon-glow {
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+        canvas {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans" style="padding-top: 64px;">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1a2634] border-b border-gray-800 shadow-lg" style="backdrop-filter: blur(8px);">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+          <h1 class="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text" style="background-clip: text; -webkit-background-clip: text;">Payment Statistics</h1>
+
+          <!-- Desktop Navigation -->
+          <div class="hidden md:flex space-x-4">
+            <a href="index.html" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors font-medium">
+              European Map
+            </a>
+            <a href="merchant_fees.html" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors font-medium">
+              Merchant Fees
+            </a>
+            <a href="bank_offers.html" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors font-medium">
+              Bank Offers
+            </a>
+          </div>
+
+          <!-- Mobile Navigation Button -->
+          <div class="md:hidden">
+            <button id="mobile-menu-button" class="text-gray-300 hover:text-white p-2 rounded-lg transition-colors">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 absolute w-full bg-[#1a2634] shadow-lg">
+        <div class="px-2 pt-2 pb-3 space-y-2">
+          <a href="index.html" class="block px-4 py-2.5 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors font-medium text-center">
+            European Map
+          </a>
+          <a href="merchant_fees.html" class="block px-4 py-2.5 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors font-medium text-center">
+            Merchant Fees
+          </a>
+          <a href="bank_offers.html" class="block px-4 py-2.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 transition-colors font-medium text-center">
+            Bank Offers
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center text-cyan-400 neon-glow mb-8">
+            Tendances des Paiements en Europe (2019-2024)
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Graphique 1 : Wallets en e-commerce -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Wallets en E-commerce</h2>
+                <canvas id="chartEcommerceWallets"></canvas>
+            </div>
+
+            <!-- Graphique 2 : Méthodes en magasin -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Méthodes en Magasin</h2>
+                <canvas id="chartInStore"></canvas>
+            </div>
+
+            <!-- Graphique 3 : Paiements instantanés -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Paiements Instantanés</h2>
+                <canvas id="chartInstantPayments"></canvas>
+            </div>
+
+            <!-- Graphique 4 : Volume e-commerce -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Volume E-commerce</h2>
+                <canvas id="chartEcommerceVolume"></canvas>
+            </div>
+
+            <!-- Graphique 5 : Paiements sans contact (NFC) -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Paiements Sans Contact (NFC)</h2>
+                <canvas id="chartNFC"></canvas>
+            </div>
+
+            <!-- Graphique 6 : Carte vs Wallets en e-commerce -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Carte vs Wallets en E-commerce</h2>
+                <canvas id="chartCardVsWallet"></canvas>
+            </div>
+
+            <!-- Graphique 7 : BNPL en e-commerce -->
+            <div class="p-4 bg-gray-800 rounded-lg neon-glow">
+                <h2 class="text-xl font-semibold text-cyan-300 mb-4">Adoption BNPL en E-commerce</h2>
+                <canvas id="chartBNPL"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration globale pour Chart.js
+        Chart.defaults.color = '#ffffff';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.2)';
+
+        // Graphique 1 : Wallets en e-commerce (Europe)
+        new Chart(document.getElementById('chartEcommerceWallets'), {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [
+                    {
+                        label: 'Wallets',
+                        data: [35, 38, 41, 43, 45, 48],
+                        borderColor: '#00FFFF',
+                        backgroundColor: 'rgba(0, 255, 255, 0.2)',
+                        fill: true,
+                    },
+                    {
+                        label: 'Cartes',
+                        data: [37, 35, 34, 33, 32, 30],
+                        borderColor: '#FF00FF',
+                        backgroundColor: 'rgba(255, 0, 255, 0.2)',
+                        fill: true,
+                    },
+                    {
+                        label: 'Autres',
+                        data: [28, 27, 25, 24, 23, 22],
+                        borderColor: '#00FF00',
+                        backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                        fill: true,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw}%` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '% Transactions' } } }
+            }
+        });
+
+        // Graphique 2 : Méthodes en magasin (Europe)
+        new Chart(document.getElementById('chartInStore'), {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [
+                    {
+                        label: 'Espèces',
+                        data: [22, 20, 18, 16, 14, 13],
+                        borderColor: '#FF00FF',
+                        backgroundColor: 'rgba(255, 0, 255, 0.2)',
+                        fill: true,
+                    },
+                    {
+                        label: 'Cartes',
+                        data: [45, 44, 43, 42, 40, 39],
+                        borderColor: '#00FF00',
+                        backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                        fill: true,
+                    },
+                    {
+                        label: 'Wallets',
+                        data: [15, 17, 19, 21, 23, 25],
+                        borderColor: '#00FFFF',
+                        backgroundColor: 'rgba(0, 255, 255, 0.2)',
+                        fill: true,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw}%` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '% Transactions' } } }
+            }
+        });
+
+        // Graphique 3 : Paiements instantanés (Europe)
+        new Chart(document.getElementById('chartInstantPayments'), {
+            type: 'bar',
+            data: {
+                labels: ['2020', '2021', '2022', '2023', '2024'],
+                datasets: [{
+                    label: 'Paiements Instantanés',
+                    data: [5, 7, 9, 10, 12],
+                    backgroundColor: '#00FFFF',
+                    borderColor: '#00FFFF',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.raw}%` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '% Transactions' } } }
+            }
+        });
+
+        // Graphique 4 : Volume e-commerce (Europe)
+        new Chart(document.getElementById('chartEcommerceVolume'), {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [{
+                    label: 'Volume E-commerce',
+                    data: [700, 770, 850, 935, 1030, 1100],
+                    borderColor: '#00FFFF',
+                    backgroundColor: 'rgba(0, 255, 255, 0.2)',
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.raw}B USD` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Milliards USD' } } }
+            }
+        });
+
+        // Graphique 5 : Paiements sans contact (NFC) en magasin
+        new Chart(document.getElementById('chartNFC'), {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [{
+                    label: 'Paiements NFC',
+                    data: [20, 25, 30, 35, 40, 45],
+                    borderColor: '#00FFFF',
+                    backgroundColor: 'rgba(0, 255, 255, 0.2)',
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.raw}%` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '% Transactions' } } }
+            }
+        });
+
+        // Graphique 6 : Carte vs Wallets en e-commerce
+        new Chart(document.getElementById('chartCardVsWallet'), {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [
+                    {
+                        label: 'Wallets',
+                        data: [30, 38, 41, 43, 45, 48],
+                        borderColor: '#00FFFF',
+                        backgroundColor: 'rgba(0, 255, 255, 0.4)',
+                        fill: 'origin',
+                    },
+                    {
+                        label: 'Cartes',
+                        data: [40, 35, 34, 33, 32, 30],
+                        borderColor: '#FF00FF',
+                        backgroundColor: 'rgba(255, 0, 255, 0.4)',
+                        fill: 'origin',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw}%` } }
+                },
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: '% Transactions' }, stacked: true },
+                    x: { stacked: true }
+                }
+            }
+        });
+
+        // Graphique 7 : BNPL en e-commerce
+        new Chart(document.getElementById('chartBNPL'), {
+            type: 'bar',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [{
+                    label: 'BNPL',
+                    data: [1, 1.5, 2, 2.5, 2.8, 3],
+                    backgroundColor: '#00FFFF',
+                    borderColor: '#00FFFF',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (context) => `${context.raw}%` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '% Transactions' } } }
+            }
+        });
+
+        // Mobile navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

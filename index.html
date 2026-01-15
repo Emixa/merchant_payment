@@ -448,6 +448,9 @@ body.menu-open #mobile-menu {
               <a href="merchant_fees.html" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors font-medium">
                 Merchant Fees
               </a>
+              <a href="bank_offers.html" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors font-medium">
+                Bank Offers
+              </a>
             </div>
     
             <!-- Mobile Navigation Button -->
@@ -469,6 +472,9 @@ body.menu-open #mobile-menu {
             </a>
             <a href="merchant_fees.html" class="block px-4 py-2.5 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors font-medium text-center">
               Merchant Fees
+            </a>
+            <a href="bank_offers.html" class="block px-4 py-2.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 transition-colors font-medium text-center">
+              Bank Offers
             </a>
           </div>
         </div>
@@ -541,6 +547,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 '--plum': rootStyles.getPropertyValue('--plum').trim()
             };
             
+            // Domestic payment scheme info that will be used in the popup
+            const domesticSchemes = {
+                BEL: { logo: "assets/bancomat_logo.png", name: "Bancontact" },
+                FRA: { logo: "assets/cb_logo.png", name: "Cartes Bancaires (CB)" },
+                DNK: { logo: "assets/dankort_logo.png", name: "Dankort" },
+                DEU: { logo: "assets/girocard_logo.png", name: "Girocard" },
+                NOR: { logo: "assets/bankaxept_logo.png", name: "BankAxept" }
+            };
+
             // Banking network information by country code
             const bankingInfo = {
                 FRA: {
@@ -555,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 ITA: {
                     title: 'Italy (ITA) - Payment Methods',
-                    content: 'Cards: 45%\nDigital/Mobile: 12%\nBank Transfer: 23%\nCash: 18%\nOther: 2%\n\nDomestic Scheme: PagoBANCOMAT\nKey Feature: National debit card system',
+                    content: 'Cards: 45%\nDigital/Mobile: 12%\nBank Transfer: 23%\nCash: 18%\nOther: 2%\n\nDomestic Scheme: PagoBANCOMAT\nKey Features: National debit card and payment scheme\nWidely accepted contactless payment system across Italy',
                     color: 'green'
                 },
                 ESP: {
@@ -565,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 PRT: {
                     title: 'Portugal (PRT) - Payment Methods',
-                    content: 'Cards: 52%\nDigital/Mobile: 11%\nBank Transfer: 24%\nCash: 11%\nOther: 2%\n\nDomestic Scheme: Multibanco\nKey Feature: Universal ATM/payment network',
+                    content: 'Cards: 52%\nDigital/Mobile: 11%\nBank Transfer: 24%\nCash: 11%\nOther: 2%\n\nDomestic Scheme: Multibanco\nKey Features: Universal ATM/payment network with contactless debit card support\nSupports tap payments on all Multibanco debit cards',
                     color: 'orange'
                 },
                 GBR: {
@@ -580,7 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 BEL: {
                     title: 'Belgium (BEL) - Payment Methods',
-                    content: 'Cards: 58%\nDigital/Mobile: 16%\nBank Transfer: 15%\nCash: 9%\nOther: 2%\n\nDomestic Scheme: Bancontact\nKey Feature: National debit card system',
+                    content: 'Cards: 58%\nDigital/Mobile: 16%\nBank Transfer: 15%\nCash: 9%\nOther: 2%\n\nDomestic Scheme: Bancontact\nKey Features: National debit card system with Payconiq mobile app\nSupports contactless payments and mobile app integration',
                     color: 'cyan'
                 },
                 CHE: {
@@ -784,9 +799,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
 
                 const domesticInfo = content.slice(6).join('\n');
+                const scheme = domesticSchemes[countryId];
 
                 popup.querySelector('h3').textContent = info.title;
                 popup.querySelector('#popupContent').innerHTML = `
+                    ${scheme ? `<div style="text-align: center; margin-bottom: 15px;">
+                        <img src="${scheme.logo}" alt="${scheme.name}" style="height: 40px; width: auto; display: inline-block; background: rgba(255, 255, 255, 0.98); padding: 8px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
+                    </div>` : ''}
                     <div class="payment-stat payment-cards">
                         <i class="fas fa-credit-card"></i>
                         <span class="stat-label">Cards</span>
@@ -963,8 +982,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     path, polygon {
                         transition: all 0.3s ease;
                     }
+                    .country-logo {
+                        width: 1rem !important;
+                        height: 1rem !important;
+                        position: absolute !important;
+                        pointer-events: none !important;
+                    }
                 `;
                 svgElement.appendChild(baseStyleElement);
+
+                // Add event listeners to countries
                 
                 // Helper functions for country styling
                 function highlightCountry(element, color) {

@@ -211,6 +211,9 @@
           <a href="merchant_fees.html" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors font-medium">
             Merchant Fees
           </a>
+          <a href="bank_offers.html" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors font-medium">
+            Bank Offers
+          </a>
         </div>
 
         <!-- Mobile Navigation Button -->
@@ -232,6 +235,9 @@
         </a>
         <a href="merchant_fees.html" class="block px-4 py-2.5 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors font-medium text-center">
           Merchant Fees
+        </a>
+        <a href="bank_offers.html" class="block px-4 py-2.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 transition-colors font-medium text-center">
+          Bank Offers
         </a>
       </div>
     </div>
@@ -279,24 +285,24 @@
 
   <script>
     const paymentMethods = [
-      { method: "Card (Online)", scheme: "CB", percentFee: 0.9, fixedFee: 0.10, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/LOGO_CB_BBR_rvb_BIG.svg/1200px-LOGO_CB_BBR_rvb_BIG.svg.png" },
-      { method: "Card (Online)", scheme: "Visa", percentFee: 1.5, fixedFee: 0.20, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" },
-      { method: "Card (Online)", scheme: "Mastercard", percentFee: 1.5, fixedFee: 0.20, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" },
-      { method: "Card (Online)", scheme: "Amex", percentFee: 2.5, fixedFee: 0.30, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" },
-      { method: "Card (Online)", scheme: "Dankort", percentFee: 0.5, fixedFee: 0.05, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/51/Dankort_logo.png" },
-      { method: "Card (Online)", scheme: "Bancomat", percentFee: 1.0, fixedFee: 0.10, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/en/0/03/Bancomat_logo.png" },
-      { method: "Card (Online)", scheme: "BankAxept", percentFee: 0.6, fixedFee: 0.05, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/f/f2/BankAxept_logo.png" },
-      { method: "Card (Online)", scheme: "Girocard", percentFee: 1.1, fixedFee: 0.15, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Girocard-zeichen.svg/2048px-Girocard-zeichen.svg.png" },
-      { method: "Card (Online)", scheme: "UnionPay", percentFee: 1.9, fixedFee: 0.20, methodLogo: "https://img.icons8.com/?size=100&id=22128&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/UnionPay_logo.svg/2560px-UnionPay_logo.svg.png" },
-      { method: "Contactless", scheme: "CB", percentFee: 0.9, fixedFee: 0.12, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/LOGO_CB_BBR_rvb_BIG.svg/1200px-LOGO_CB_BBR_rvb_BIG.svg.png" },
-      { method: "Contactless", scheme: "Visa", percentFee: 1.5, fixedFee: 0.22, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" },
-      { method: "Contactless", scheme: "Mastercard", percentFee: 1.5, fixedFee: 0.22, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" },
-      { method: "Contactless", scheme: "Amex", percentFee: 2.5, fixedFee: 0.32, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" },
-      { method: "Contactless", scheme: "Dankort", percentFee: 0.5, fixedFee: 0.06, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/5/51/Dankort_logo.png" },
-      { method: "Contactless", scheme: "Bancomat", percentFee: 1.0, fixedFee: 0.12, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/en/0/03/Bancomat_logo.png" },
-      { method: "Contactless", scheme: "BankAxept", percentFee: 0.6, fixedFee: 0.06, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/f/f2/BankAxept_logo.png" },
-      { method: "Contactless", scheme: "Girocard", percentFee: 1.2, fixedFee: 0.17, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Girocard-zeichen.svg/2048px-Girocard-zeichen.svg.png" },
-      { method: "Contactless", scheme: "UnionPay", percentFee: 1.9, fixedFee: 0.22, methodLogo: "https://img.icons8.com/?size=100&id=WTSd-tu9AB_W&format=png&color=FFFFFF", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/UnionPay_logo.svg/2560px-UnionPay_logo.svg.png" },
+      { method: "Card (Online)", scheme: "CB", percentFee: 0.9, fixedFee: 0.10, methodLogo: "assets/card_icon.png", schemeLogo: "assets/cb_logo.png" },
+      { method: "Card (Online)", scheme: "Visa", percentFee: 1.5, fixedFee: 0.20, methodLogo: "assets/card_icon.png", schemeLogo: "assets/visa_logo.svg" },
+      { method: "Card (Online)", scheme: "Mastercard", percentFee: 1.5, fixedFee: 0.20, methodLogo: "assets/card_icon.png", schemeLogo: "assets/mastercard_logo.svg" },
+      { method: "Card (Online)", scheme: "Amex", percentFee: 2.5, fixedFee: 0.30, methodLogo: "assets/card_icon.png", schemeLogo: "assets/amex_logo.png" },
+      { method: "Card (Online)", scheme: "Dankort", percentFee: 0.5, fixedFee: 0.05, methodLogo: "assets/card_icon.png", schemeLogo: "assets/dankort_logo.png" },
+      { method: "Card (Online)", scheme: "Bancomat", percentFee: 1.0, fixedFee: 0.10, methodLogo: "assets/card_icon.png", schemeLogo: "assets/bancomat_logo.png" },
+      { method: "Card (Online)", scheme: "BankAxept", percentFee: 0.6, fixedFee: 0.05, methodLogo: "assets/card_icon.png", schemeLogo: "assets/bankaxept_logo.png" },
+      { method: "Card (Online)", scheme: "Girocard", percentFee: 1.1, fixedFee: 0.15, methodLogo: "assets/card_icon.png", schemeLogo: "assets/girocard_logo.png" },
+      { method: "Card (Online)", scheme: "UnionPay", percentFee: 1.9, fixedFee: 0.20, methodLogo: "assets/card_icon.png", schemeLogo: "assets/unionpay_logo.png" },
+      { method: "Contactless", scheme: "CB", percentFee: 0.9, fixedFee: 0.12, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/cb_logo.png" },
+      { method: "Contactless", scheme: "Visa", percentFee: 1.5, fixedFee: 0.22, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/visa_logo.svg" },
+      { method: "Contactless", scheme: "Mastercard", percentFee: 1.5, fixedFee: 0.22, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/mastercard_logo.svg" },
+      { method: "Contactless", scheme: "Amex", percentFee: 2.5, fixedFee: 0.32, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/amex_logo.png" },
+      { method: "Contactless", scheme: "Dankort", percentFee: 0.5, fixedFee: 0.06, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/dankort_logo.png" },
+      { method: "Contactless", scheme: "Bancomat", percentFee: 1.0, fixedFee: 0.12, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/bancomat_logo.png" },
+      { method: "Contactless", scheme: "BankAxept", percentFee: 0.6, fixedFee: 0.06, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/bankaxept_logo.png" },
+      { method: "Contactless", scheme: "Girocard", percentFee: 1.2, fixedFee: 0.17, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/girocard_logo.png" },
+      { method: "Contactless", scheme: "UnionPay", percentFee: 1.9, fixedFee: 0.22, methodLogo: "assets/contactless_icon.png", schemeLogo: "assets/unionpay_logo.png" },
       { method: "Digital Wallet", scheme: "Apple Pay", percentFee: 1.6, fixedFee: 0.25, methodLogo: "https://img.icons8.com/color/18/wallet.png", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Apple_Pay_logo.svg/1200px-Apple_Pay_logo.svg.png" },
       { method: "Digital Wallet", scheme: "Google Pay", percentFee: 1.6, fixedFee: 0.25, methodLogo: "https://img.icons8.com/color/18/wallet.png", schemeLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/1280px-Google_Pay_Logo.svg.png" },
       { method: "Instant Payment", scheme: "WERO", percentFee: 1.2, fixedFee: 0.15, methodLogo: "https://cdn.vectorstock.com/i/500p/11/54/coin-symbol-dollar-icon-money-sign-vector-38711154.jpg", schemeLogo: "https://wcmassets.cbc.be/content/dam/kdl-assets/logos/w/logos-wero.svg.cdn.res/last-modified/1723638836231/logos-wero.svg" },
