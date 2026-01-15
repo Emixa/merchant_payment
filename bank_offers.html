@@ -500,9 +500,9 @@
   <script>
     // Bank logos
     const bankLogos = {
-      'BoursoBank': 'https://www.boursobank.com/favicon-192x192.png',
-      'Fortuneo': 'https://www.fortuneo.fr/favicon-192x192.png',
-      'N26': 'https://n26.com/favicon-192x192.png',
+      'BoursoBank': 'assets/boursobank_logo.png',
+      'Fortuneo': 'assets/fortuneo_logo.png',
+      'N26': 'assets/n26_logo.png',
       'Revolut': 'https://www.revolut.com/favicon-192x192.png',
       'Hello bank!': 'https://www.hellobank.fr/content/dam/bnpparibas/hellobank/favicon/apple-touch-icon.png',
       'Monabanq': 'https://www.monabanq.com/favicon-192x192.png',
@@ -511,7 +511,9 @@
       'Sumeria (ex-Lydia)': 'https://sumeria.eu/favicon-192x192.png',
       'Orange Bank': 'https://www.orangebank.fr/favicon-192x192.png',
       'Ma French Bank': 'https://www.mafrenchbank.fr/favicon-192x192.png',
-      'BforBank': 'https://www.bforbank.com/favicon-192x192.png'
+      'BforBank': 'https://www.bforbank.com/favicon-192x192.png',
+      'CIC': 'assets/cic_logo.svg',
+      'LCL': 'assets/Lcl_logo.png'
     };
 
     // Bank offers data
@@ -623,7 +625,7 @@
     function formatPrice(price) {
       if (price === null || price === undefined) return 'N/A';
       if (price === 0) return 'Gratuit';
-      return price.toFixed(2).replace('.', ',') + ' EUR';
+      return price.toFixed(2).replace('.', ',');
     }
 
     function getOfferTypeLabel(type) {
@@ -730,7 +732,7 @@
 
           <div style="padding: 0 24px 16px;">
             <div class="${getPriceColor(offer.monthlyFee)}" style="font-size: 32px; font-weight: 800; line-height: 1;">
-              ${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee.toFixed(2).replace('.', ',') + ' EUR'}
+              ${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee.toFixed(2).replace('.', ',')}
               ${offer.monthlyFee > 0 ? '<span style="font-size: 14px; font-weight: 500; color: #64748b;">/mois</span>' : ''}
             </div>
             ${offer.monthlyFeeCondition ? `<div style="font-size: 12px; color: #94a3b8; margin-top: 6px; font-style: italic;">${offer.monthlyFeeCondition}</div>` : ''}
@@ -847,7 +849,7 @@
             <div style="font-size: 15px; color: #94a3b8;">${offer.bank}</div>
           </div>
           <div class="${getPriceColor(offer.monthlyFee)}" style="font-size: 28px; font-weight: 800;">
-            ${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee + ' EUR/mois'}
+            ${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee + '/mois'}
           </div>
           <button onclick="closeModal()" style="background: rgba(255,255,255,0.1); border: none; width: 40px; height: 40px; border-radius: 10px; color: #94a3b8; font-size: 20px; cursor: pointer;">x</button>
         </div>
