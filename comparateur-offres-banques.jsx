@@ -62,7 +62,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Gratuite sans condition de revenus', 'Paiements à l\'étranger gratuits'],
     targetProfile: 'Débutants, étudiants',
-    url: 'https://www.boursobank.com'
+    url: 'https://www.boursobank.com',
+    referral: {
+      sponsor: '150€',
+      sponsored: '150€',
+      conditions: 'Ouverture de compte avec 1ère transaction'
+    }
   },
   {
     id: 'bourso-ultim',
@@ -103,7 +108,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Carte gratuite équivalent Visa Premier', 'Assurances voyage incluses', 'Sans frais à l\'étranger'],
     targetProfile: 'Voyageurs occasionnels, actifs',
-    url: 'https://www.boursobank.com'
+    url: 'https://www.boursobank.com',
+    referral: {
+      sponsor: '150€',
+      sponsored: '150€',
+      conditions: 'Ouverture de compte avec 1ère transaction'
+    }
   },
   {
     id: 'bourso-metal',
@@ -143,7 +153,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Retraits illimités dans le monde', 'Cashback sur achats', 'Conciergerie et salons'],
     targetProfile: 'Grands voyageurs, clients premium',
-    url: 'https://www.boursobank.com'
+    url: 'https://www.boursobank.com',
+    referral: {
+      sponsor: '150€',
+      sponsored: '150€',
+      conditions: 'Ouverture de compte avec 1ère transaction'
+    }
   },
   {
     id: 'bourso-freedom',
@@ -178,7 +193,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Compte ado gratuit', 'Contrôle parental', 'App dédiée'],
     targetProfile: 'Adolescents 12-17 ans',
-    url: 'https://www.boursobank.com'
+    url: 'https://www.boursobank.com',
+    referral: {
+      sponsor: '150€',
+      sponsored: '150€',
+      conditions: 'Ouverture de compte avec 1ère transaction'
+    }
   },
 
   // ==================== FORTUNEO ====================
@@ -219,7 +239,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Retraits gratuits partout dans le monde', 'Sans condition de revenus', 'La plus généreuse à l\'étranger'],
     targetProfile: 'Voyageurs, tous profils',
-    url: 'https://www.fortuneo.fr'
+    url: 'https://www.fortuneo.fr',
+    referral: {
+      sponsor: '150€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec versement initial'
+    }
   },
   {
     id: 'fortuneo-gold',
@@ -259,7 +284,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Seule Gold gratuite du marché', 'Débit différé disponible', 'Retraits illimités monde entier'],
     targetProfile: 'Voyageurs réguliers, revenus 1800€+',
-    url: 'https://www.fortuneo.fr'
+    url: 'https://www.fortuneo.fr',
+    referral: {
+      sponsor: '150€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec versement initial'
+    }
   },
   {
     id: 'fortuneo-world-elite',
@@ -300,7 +330,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Seule World Elite gratuite du marché', 'Conciergerie 24/7', 'Assurances ultra-complètes'],
     targetProfile: 'Cadres supérieurs, grands voyageurs',
-    url: 'https://www.fortuneo.fr'
+    url: 'https://www.fortuneo.fr',
+    referral: {
+      sponsor: '150€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec versement initial'
+    }
   },
 
   // ==================== N26 ====================
@@ -338,7 +373,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['100% gratuit', 'Paiements gratuits partout', 'Gestion budgétaire avancée'],
     targetProfile: 'Petits budgets, complémentaire',
-    url: 'https://n26.com/fr-fr'
+    url: 'https://n26.com/fr-fr',
+    referral: {
+      sponsor: '15€',
+      sponsored: '15€',
+      conditions: 'Première transaction effectuée'
+    }
   },
   {
     id: 'n26-smart',
@@ -374,7 +414,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Sous-comptes pour budgétiser', 'Carte physique incluse', 'Support téléphone'],
     targetProfile: 'Utilisateurs quotidiens',
-    url: 'https://n26.com/fr-fr'
+    url: 'https://n26.com/fr-fr',
+    referral: {
+      sponsor: '15€',
+      sponsored: '15€',
+      conditions: 'Première transaction effectuée'
+    }
   },
   {
     id: 'n26-go',
@@ -411,7 +456,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Retraits illimités hors zone euro', 'Assurance voyage Allianz', 'Épargne rémunérée 1,3%'],
     targetProfile: 'Voyageurs fréquents',
-    url: 'https://n26.com/fr-fr'
+    url: 'https://n26.com/fr-fr',
+    referral: {
+      sponsor: '15€',
+      sponsored: '15€',
+      conditions: 'Première transaction effectuée'
+    }
   },
   {
     id: 'n26-metal',
@@ -449,7 +499,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Carte métal premium', 'Assurance smartphone incluse', 'Service client prioritaire'],
     targetProfile: 'Clients premium, voyageurs',
-    url: 'https://n26.com/fr-fr'
+    url: 'https://n26.com/fr-fr',
+    referral: {
+      sponsor: '15€',
+      sponsored: '15€',
+      conditions: 'Première transaction effectuée'
+    }
   },
 
   // ==================== REVOLUT ====================
@@ -488,7 +543,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Multi-devises', 'Change au taux interbancaire', 'Crypto et actions'],
     targetProfile: 'Usage international, fintech',
-    url: 'https://www.revolut.com/fr-FR'
+    url: 'https://www.revolut.com/fr-FR',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: '3 transactions par carte effectuées'
+    }
   },
   {
     id: 'revolut-plus',
@@ -525,7 +585,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Protection achats', 'Support prioritaire', 'Carte personnalisable'],
     targetProfile: 'Usage quotidien sécurisé',
-    url: 'https://www.revolut.com/fr-FR'
+    url: 'https://www.revolut.com/fr-FR',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: '3 transactions par carte effectuées'
+    }
   },
   {
     id: 'revolut-premium',
@@ -564,7 +629,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Change illimité sans frais', 'Assurance voyage complète', 'Cartes virtuelles jetables'],
     targetProfile: 'Voyageurs, acheteurs en ligne',
-    url: 'https://www.revolut.com/fr-FR'
+    url: 'https://www.revolut.com/fr-FR',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: '3 transactions par carte effectuées'
+    }
   },
   {
     id: 'revolut-metal',
@@ -604,7 +674,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Carte métal élégante', 'Cashback sur achats', 'Épargne rémunérée 2%'],
     targetProfile: 'Clients premium, investisseurs',
-    url: 'https://www.revolut.com/fr-FR'
+    url: 'https://www.revolut.com/fr-FR',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: '3 transactions par carte effectuées'
+    }
   },
   {
     id: 'revolut-ultra',
@@ -644,7 +719,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Salons aéroport illimités', 'Abonnements inclus (2600€/an)', 'Service VIP'],
     targetProfile: 'Très grands voyageurs, VIP',
-    url: 'https://www.revolut.com/fr-FR'
+    url: 'https://www.revolut.com/fr-FR',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: '3 transactions par carte effectuées'
+    }
   },
 
   // ==================== HELLO BANK! ====================
@@ -682,7 +762,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Gratuite sans condition', 'Filiale BNP Paribas', 'Services complets'],
     targetProfile: 'Tous profils, usage France',
-    url: 'https://www.hellobank.fr'
+    url: 'https://www.hellobank.fr',
+    referral: {
+      sponsor: '80€',
+      sponsored: '180€',
+      conditions: 'Ouverture de compte avec première utilisation'
+    }
   },
   {
     id: 'hello-prime',
@@ -720,7 +805,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Retraits gratuits monde entier', 'Assurances voyage', 'Très accessible (1000€)'],
     targetProfile: 'Voyageurs, petits revenus',
-    url: 'https://www.hellobank.fr'
+    url: 'https://www.hellobank.fr',
+    referral: {
+      sponsor: '80€',
+      sponsored: '180€',
+      conditions: 'Ouverture de compte avec première utilisation'
+    }
   },
 
   // ==================== MONABANQ ====================
@@ -758,7 +848,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Sans condition de revenus', 'Service client primé 9 fois', 'Filiale Crédit Mutuel'],
     targetProfile: 'Tous profils, qualité service',
-    url: 'https://www.monabanq.com'
+    url: 'https://www.monabanq.com',
+    referral: {
+      sponsor: '50€',
+      sponsored: '120€',
+      conditions: 'Ouverture de compte et activation carte'
+    }
   },
   {
     id: 'monabanq-pratiq-plus',
@@ -795,7 +890,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Visa Premier sans revenus minimum', 'Débit différé accessible', 'Service client top'],
     targetProfile: 'Voyageurs, tous revenus',
-    url: 'https://www.monabanq.com'
+    url: 'https://www.monabanq.com',
+    referral: {
+      sponsor: '50€',
+      sponsored: '120€',
+      conditions: 'Ouverture de compte et activation carte'
+    }
   },
   {
     id: 'monabanq-uniq',
@@ -833,7 +933,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Visa Platinum sans revenus', 'Retraits illimités monde', 'Conciergerie incluse'],
     targetProfile: 'Clients exigeants, tous revenus',
-    url: 'https://www.monabanq.com'
+    url: 'https://www.monabanq.com',
+    referral: {
+      sponsor: '50€',
+      sponsored: '120€',
+      conditions: 'Ouverture de compte et activation carte'
+    }
   },
 
   // ==================== NICKEL ====================
@@ -871,7 +976,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Ouverture en 5min chez buraliste', 'Sans justificatif', 'Interdit bancaire accepté'],
     targetProfile: 'Interdits bancaires, urgence',
-    url: 'https://www.nickel.eu'
+    url: 'https://www.nickel.eu',
+    referral: {
+      sponsor: '20€',
+      sponsored: '20€',
+      conditions: 'Ouverture de compte chez un buraliste'
+    }
   },
   {
     id: 'nickel-chrome',
@@ -907,7 +1017,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Plafonds plus élevés', 'Assurance incluse', 'Frais réduits à l\'étranger'],
     targetProfile: 'Usage régulier, voyages occasionnels',
-    url: 'https://www.nickel.eu'
+    url: 'https://www.nickel.eu',
+    referral: {
+      sponsor: '20€',
+      sponsored: '20€',
+      conditions: 'Ouverture de compte chez un buraliste'
+    }
   },
 
   // ==================== WISE ====================
@@ -946,7 +1061,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Multi-devises (50+ monnaies)', 'Taux de change réel', 'IBAN dans 10+ pays'],
     targetProfile: 'Expatriés, freelances internationaux',
-    url: 'https://wise.com/fr'
+    url: 'https://wise.com/fr',
+    referral: {
+      sponsor: '50€',
+      sponsored: 'Transfert gratuit',
+      conditions: 'Premier transfert de 200€ minimum'
+    }
   },
 
   // ==================== LYDIA / SUMERIA ====================
@@ -984,7 +1104,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Paiement entre amis', 'Cagnottes', 'App très populaire'],
     targetProfile: 'Jeunes, paiements entre amis',
-    url: 'https://www.sumeria.eu'
+    url: 'https://www.sumeria.eu',
+    referral: {
+      sponsor: '10€',
+      sponsored: '10€',
+      conditions: 'Premier paiement par carte effectué'
+    }
   },
   {
     id: 'sumeria-plus',
@@ -1021,7 +1146,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Cashback 0,5%', 'Retraits illimités en euros', 'Plafonds élevés'],
     targetProfile: 'Jeunes actifs',
-    url: 'https://www.sumeria.eu'
+    url: 'https://www.sumeria.eu',
+    referral: {
+      sponsor: '10€',
+      sponsored: '10€',
+      conditions: 'Premier paiement par carte effectué'
+    }
   },
 
   // ==================== MA FRENCH BANK ====================
@@ -1058,7 +1188,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Filiale Banque Postale', 'Ouverture en bureau de poste', 'Accessible à tous'],
     targetProfile: 'Tous publics, réseau postal',
-    url: 'https://www.mafrenchbank.fr'
+    url: 'https://www.mafrenchbank.fr',
+    referral: {
+      sponsor: '20€',
+      sponsored: '20€',
+      conditions: 'Ouverture de compte avec 1er paiement'
+    }
   },
 
   // ==================== BFORBANK ====================
@@ -1099,7 +1234,12 @@ const bankOffers = [
     mobilePayment: true,
     highlights: ['Visa Premier gratuite', 'Filiale Crédit Agricole', 'PEA performant'],
     targetProfile: 'Épargnants, investisseurs',
-    url: 'https://www.bforbank.com'
+    url: 'https://www.bforbank.com',
+    referral: {
+      sponsor: '100€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec versement initial'
+    }
   },
 
   // ==================== BANQUES TRADITIONNELLES - PACKS ====================
@@ -1139,7 +1279,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['Réseau d\'agences dense', 'Services complets', 'Tous crédits'],
     targetProfile: 'Besoin d\'agence physique',
-    url: 'https://www.bnpparibas.fr'
+    url: 'https://www.bnpparibas.fr',
+    referral: {
+      sponsor: '80€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec domiciliation revenus'
+    }
   },
   {
     id: 'bnp-esprit-libre-premium',
@@ -1178,7 +1323,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['Visa Premier avec assurances', 'Conseiller dédié', 'Cash Services gratuit'],
     targetProfile: 'Clients traditionnels, voyageurs',
-    url: 'https://www.bnpparibas.fr'
+    url: 'https://www.bnpparibas.fr',
+    referral: {
+      sponsor: '80€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec domiciliation revenus'
+    }
   },
   {
     id: 'sg-sobrio-essentiel',
@@ -1215,7 +1365,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['Grand réseau national', 'Services complets', 'Application moderne'],
     targetProfile: 'Besoin d\'agence',
-    url: 'https://www.societegenerale.fr'
+    url: 'https://www.societegenerale.fr',
+    referral: {
+      sponsor: '80€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec domiciliation revenus'
+    }
   },
   {
     id: 'ca-essentiel',
@@ -1252,7 +1407,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['Tarifs parmi les plus bas', 'Premier réseau France', 'Mutualiste'],
     targetProfile: 'Tous profils, rural',
-    url: 'https://www.credit-agricole.fr'
+    url: 'https://www.credit-agricole.fr',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: 'Variable selon caisse régionale'
+    }
   },
   {
     id: 'ca-gold',
@@ -1290,7 +1450,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['Tarifs compétitifs', 'Assurances incluses', 'Conseiller local'],
     targetProfile: 'Familles, voyageurs occasionnels',
-    url: 'https://www.credit-agricole.fr'
+    url: 'https://www.credit-agricole.fr',
+    referral: {
+      sponsor: '50€',
+      sponsored: '50€',
+      conditions: 'Variable selon caisse régionale'
+    }
   },
   {
     id: 'lcl-zen',
@@ -1328,7 +1493,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['Pack complet', 'Filiale Crédit Agricole', 'Présence urbaine'],
     targetProfile: 'Urbains, services complets',
-    url: 'https://www.lcl.fr'
+    url: 'https://www.lcl.fr',
+    referral: {
+      sponsor: '100€',
+      sponsored: '100€',
+      conditions: 'Ouverture de compte et domiciliation salaire'
+    }
   },
   {
     id: 'banque-postale-formule',
@@ -1365,7 +1535,12 @@ const bankOffers = [
     hasAgency: true,
     highlights: ['17 000 points de contact', 'Mission d\'accessibilité', 'Livret A inclus'],
     targetProfile: 'Rural, tous publics',
-    url: 'https://www.labanquepostale.fr'
+    url: 'https://www.labanquepostale.fr',
+    referral: {
+      sponsor: '80€',
+      sponsored: '80€',
+      conditions: 'Ouverture de compte avec domiciliation revenus'
+    }
   }
 ];
 
@@ -1629,6 +1804,35 @@ export default function BankOffersComparator() {
             </div>
           )}
 
+          {/* Parrainage */}
+          {offer.referral && (
+            <div style={{ marginTop: 20 }}>
+              <div style={{ fontSize: 13, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
+                🎁 Offre de parrainage
+              </div>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15))',
+                borderRadius: 12, padding: '16px', border: '1px solid rgba(16, 185, 129, 0.2)'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase' }}>Pour le parrain</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#10b981' }}>{offer.referral.sponsor}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase' }}>Pour le filleul</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#60a5fa' }}>{offer.referral.sponsored}</div>
+                  </div>
+                </div>
+                {offer.referral.conditions && (
+                  <div style={{ marginTop: 12, fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+                    Conditions : {offer.referral.conditions}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Cible */}
           <div style={{
             marginTop: 24, padding: '16px', background: 'rgba(99, 102, 241, 0.1)',
@@ -1756,6 +1960,9 @@ export default function BankOffersComparator() {
         )}
         {offer.cashback && (
           <FeatureBadge icon="💰" text="Cashback" good />
+        )}
+        {offer.referral && (
+          <FeatureBadge icon="🎁" text={`Parrain: ${offer.referral.sponsor}`} good />
         )}
       </div>
 
@@ -1947,7 +2154,8 @@ export default function BankOffersComparator() {
                       { key: 'paymentsFreeAbroad', label: 'Paiements étr.' },
                       { key: 'withdrawalsFreeAbroad', label: 'Retraits étr.' },
                       { key: 'insuranceTravel', label: 'Assurance' },
-                      { key: 'incomeRequired', label: 'Revenus requis' }
+                      { key: 'incomeRequired', label: 'Revenus requis' },
+                      { key: 'referral', label: 'Parrainage' }
                     ].map(col => (
                       <th key={col.key} onClick={() => handleSort(col.key)} style={{
                         padding: '16px 12px', textAlign: 'left',
@@ -2043,6 +2251,16 @@ export default function BankOffersComparator() {
                       </td>
                       <td style={{ padding: '14px 12px', borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: 13, color: offer.incomeRequired ? '#fbbf24' : '#10b981' }}>
                         {offer.incomeRequired ? `${offer.incomeRequired}€` : 'Aucun'}
+                      </td>
+                      <td style={{ padding: '14px 12px', borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: 12 }}>
+                        {offer.referral ? (
+                          <div>
+                            <div style={{ color: '#10b981', fontWeight: 600 }}>🎁 {offer.referral.sponsor}</div>
+                            <div style={{ color: '#60a5fa', fontSize: 11, marginTop: 2 }}>Filleul: {offer.referral.sponsored}</div>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#64748b' }}>—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
