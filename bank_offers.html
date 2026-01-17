@@ -96,6 +96,48 @@
       transform: rotate(180deg);
     }
 
+    /* Mobile view switcher */
+    .mobile-view-switcher {
+      display: none;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .view-toggle-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255,255,255,0.05);
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .view-toggle-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .view-toggle-btn span {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .view-toggle-btn.active {
+      background: linear-gradient(135deg, #6366f1, #8B5CF6);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
     @media (max-width: 768px) {
       .mobile-header-bar {
         display: flex;
@@ -103,6 +145,14 @@
 
       .mobile-filters-toggle {
         display: flex;
+      }
+
+      .mobile-view-switcher {
+        display: flex;
+      }
+
+      .desktop-view-switcher {
+        display: none !important;
       }
 
       .desktop-results-count {
@@ -115,6 +165,11 @@
 
       .filters-content.show {
         display: block;
+      }
+
+      /* Hide the entire filter card container when filters are not shown */
+      .filters-container:not(.filters-open) {
+        display: none;
       }
     }
 
@@ -224,23 +279,69 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
       padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .modal-content {
       background: linear-gradient(180deg, #1e293b, #0f172a);
       border-radius: 24px;
-      max-width: 700px;
+      max-width: 600px;
       width: 100%;
       max-height: 90vh;
       overflow: auto;
       border: 1px solid rgba(255,255,255,0.1);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-close-btn {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      color: #ef4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      transform: scale(1.05);
+    }
+
+    .modal-close-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 20px;
+      }
     }
 
     .detail-box {
@@ -395,8 +496,30 @@
       </button>
     </div>
 
+    <!-- Mobile view switcher -->
+    <div class="mobile-view-switcher">
+      <button id="mobileViewTable" class="view-toggle-btn active" onclick="setViewMode('table')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+        <span>Tableau</span>
+      </button>
+      <button id="mobileViewCards" class="view-toggle-btn" onclick="setViewMode('cards')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <span>Cartes</span>
+      </button>
+    </div>
+
     <!-- Filters -->
-    <div class="glass-card rounded-2xl p-5 mb-6">
+    <div id="filtersContainer" class="glass-card rounded-2xl p-5 mb-6 filters-container">
 
       <div id="filtersContent" class="filters-content">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -452,7 +575,7 @@
             Reinitialiser les filtres
           </button>
 
-          <div class="flex gap-2">
+          <div class="flex gap-2 desktop-view-switcher">
             <button id="viewTable" onclick="setViewMode('table')" class="btn-secondary active">
               Tableau
             </button>
@@ -836,8 +959,16 @@
 
     function setViewMode(mode) {
       viewMode = mode;
+      // Desktop buttons
       document.getElementById('viewTable').classList.toggle('active', mode === 'table');
       document.getElementById('viewCards').classList.toggle('active', mode === 'cards');
+      // Mobile buttons
+      const mobileTableBtn = document.getElementById('mobileViewTable');
+      const mobileCardsBtn = document.getElementById('mobileViewCards');
+      if (mobileTableBtn && mobileCardsBtn) {
+        mobileTableBtn.classList.toggle('active', mode === 'table');
+        mobileCardsBtn.classList.toggle('active', mode === 'cards');
+      }
       render();
     }
 
@@ -854,10 +985,12 @@
 
     function toggleMobileFilters() {
       const filtersContent = document.getElementById('filtersContent');
+      const filtersContainer = document.getElementById('filtersContainer');
       const toggleBtn = document.getElementById('mobileFiltersToggle');
       const toggleText = document.getElementById('filtersToggleText');
 
       filtersContent.classList.toggle('show');
+      filtersContainer.classList.toggle('filters-open');
       toggleBtn.classList.toggle('active');
 
       if (filtersContent.classList.contains('show')) {
@@ -876,130 +1009,126 @@
       const content = document.getElementById('modalContent');
 
       content.innerHTML = `
-        <div style="padding: 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 16px;">
-          <div class="bank-logo bank-logo-fallback" style="width: 56px; height: 56px; font-size: 16px; background: ${offer.bankColor}; ${bankLogos[offer.bank] ? 'display:none' : ''}">${offer.bankLogo}</div>
-          ${bankLogos[offer.bank] ? `<img src="${bankLogos[offer.bank]}" style="width: 56px; height: 56px; border-radius: 14px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="bank-logo bank-logo-fallback" style="width: 56px; height: 56px; font-size: 16px; background: ${offer.bankColor}; display: none;">${offer.bankLogo}</div>` : ''}
-          <div style="flex: 1;">
-            <div style="font-size: 24px; font-weight: 700; color: #f8fafc; margin-bottom: 4px;">${offer.offerName}</div>
-            <div style="font-size: 15px; color: #94a3b8;">${offer.bank}</div>
+        <!-- Header -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: flex-start; gap: 14px;">
+          <div class="bank-logo bank-logo-fallback" style="width: 48px; height: 48px; font-size: 14px; background: ${offer.bankColor}; ${bankLogos[offer.bank] ? 'display:none' : ''}">${offer.bankLogo}</div>
+          ${bankLogos[offer.bank] ? `<img src="${bankLogos[offer.bank]}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="bank-logo bank-logo-fallback" style="width: 48px; height: 48px; font-size: 14px; background: ${offer.bankColor}; display: none;">${offer.bankLogo}</div>` : ''}
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 20px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; line-height: 1.2;">${offer.offerName}</div>
+            <div style="font-size: 14px; color: #94a3b8;">${offer.bank}</div>
+            <div class="${getPriceColor(offer.monthlyFee)}" style="font-size: 24px; font-weight: 800; margin-top: 8px;">
+              ${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee + '€/mois'}
+            </div>
+            ${offer.monthlyFeeCondition ? `<div style="font-size: 12px; color: #fbbf24; margin-top: 4px; font-style: italic;">⚠️ ${offer.monthlyFeeCondition}</div>` : ''}
           </div>
-          <div class="${getPriceColor(offer.monthlyFee)}" style="font-size: 28px; font-weight: 800;">
-            ${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee + '/mois'}
-          </div>
-          <button onclick="closeModal()" style="background: rgba(255,255,255,0.1); border: none; width: 40px; height: 40px; border-radius: 10px; color: #94a3b8; font-size: 20px; cursor: pointer;">x</button>
+          <button onclick="closeModal()" class="modal-close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
-        <div style="padding: 24px 28px;">
-          ${offer.monthlyFeeCondition ? `
-            <div style="background: rgba(234, 179, 8, 0.15); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; color: #fbbf24; font-size: 14px;">
-              ${offer.monthlyFeeCondition}
-            </div>
-          ` : ''}
-
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
-            <span style="padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: white;" class="type-${offer.offerType}">${getOfferTypeLabel(offer.offerType)}</span>
-            <span style="padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: ${getBankTypeColor(offer.bankType)}22; color: ${getBankTypeColor(offer.bankType)};">${getBankTypeLabel(offer.bankType)}</span>
-            <span style="padding: 6px 14px; border-radius: 20px; font-size: 13px; background: rgba(148, 163, 184, 0.2); color: #94a3b8;">${offer.cardType}</span>
+        <!-- Content -->
+        <div style="padding: 20px 24px;">
+          <!-- Tags -->
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;">
+            <span style="padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; color: white;" class="type-${offer.offerType}">${getOfferTypeLabel(offer.offerType)}</span>
+            <span style="padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; background: ${getBankTypeColor(offer.bankType)}22; color: ${getBankTypeColor(offer.bankType)};">${getBankTypeLabel(offer.bankType)}</span>
+            <span style="padding: 5px 12px; border-radius: 16px; font-size: 12px; background: rgba(148, 163, 184, 0.2); color: #94a3b8;">${offer.cardType}</span>
           </div>
 
-          <div style="margin-bottom: 24px;">
-            <div style="font-size: 13px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Points forts</div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              ${offer.highlights.map(h => `<div style="display: flex; align-items: center; gap: 10px; color: #e2e8f0; font-size: 15px;"><span style="color: #10b981;">&#10003;</span> ${h}</div>`).join('')}
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-            ${offer.inactivityFee ? `
-              <div class="detail-box">
-                <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Si carte non utilisee</div>
-                <div style="font-size: 15px; font-weight: 600; color: #f87171;">${typeof offer.inactivityFee === 'number' ? offer.inactivityFee + ' EUR/mois' : offer.inactivityFee}</div>
-              </div>
-            ` : ''}
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Paiements a l'etranger</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${offer.paymentsFreeAbroad ? '#10b981' : '#f87171'};">${offer.paymentsFreeAbroad ? 'Gratuits' : 'Avec frais'}</div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Retraits hors zone EUR</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${offer.withdrawalsFreeAbroad === 'Illimite' || offer.withdrawalsFreeAbroad > 0 ? '#10b981' : '#f87171'};">
-                ${offer.withdrawalsFreeAbroad === 'Illimite' ? 'Illimites gratuits' :
-                  offer.withdrawalsFreeAbroad === 0 ? 'Payants (' + offer.withdrawalsExtraFee + ')' :
-                  offer.withdrawalsFreeAbroad + offer.withdrawalsFreeAbroadUnit + ' gratuits'}
-              </div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Retraits zone euro</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${offer.freeWithdrawalsEuro === 'Illimite' ? '#10b981' : '#e2e8f0'};">${offer.freeWithdrawalsEuro}</div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Assurance voyage</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${offer.insuranceTravel ? '#10b981' : '#f87171'};">${offer.insuranceTravel ? 'Incluse' : 'Non incluse'}</div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Debit differe</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${offer.cardDebitDiffere ? '#10b981' : '#f87171'};">${offer.cardDebitDiffere ? 'Disponible' : 'Non'}</div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Revenus requis</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${!offer.incomeRequired ? '#10b981' : '#f87171'};">${offer.incomeRequired ? offer.incomeRequired + ' EUR/mois' : 'Aucun'}</div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Decouvert</div>
-              <div style="font-size: 15px; font-weight: 600; color: ${offer.overdraftAvailable ? '#10b981' : '#f87171'};">${offer.overdraftAvailable ? 'Disponible' : 'Non'}</div>
-            </div>
-            <div class="detail-box">
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">IBAN</div>
-              <div style="font-size: 15px; font-weight: 600; color: #e2e8f0;">${offer.iban}</div>
-            </div>
-            ${offer.loungeAccess ? `
-              <div class="detail-box">
-                <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Salons aeroport</div>
-                <div style="font-size: 15px; font-weight: 600; color: #10b981;">${offer.loungeAccessDetails || 'Inclus'}</div>
-              </div>
-            ` : ''}
-            ${offer.cashback ? `
-              <div class="detail-box">
-                <div style="font-size: 11px; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Cashback</div>
-                <div style="font-size: 15px; font-weight: 600; color: #10b981;">${offer.cashbackRate || 'Oui'}</div>
-              </div>
-            ` : ''}
-          </div>
-
-          ${offer.insuranceTravelDetails ? `
-            <div style="margin-top: 20px;">
-              <div style="font-size: 13px; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">Detail assurances</div>
-              <div style="background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 14px 16px; color: #10b981; font-size: 14px;">
-                ${offer.insuranceTravelDetails}
+          <!-- Highlights - condensed -->
+          ${offer.highlights.length > 0 ? `
+            <div style="background: rgba(16, 185, 129, 0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
+              <div style="font-size: 11px; color: #10b981; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">✓ Points Forts</div>
+              <div style="display: grid; gap: 6px;">
+                ${offer.highlights.slice(0, 3).map(h => `<div style="color: #e2e8f0; font-size: 13px; line-height: 1.4;">• ${h}</div>`).join('')}
               </div>
             </div>
           ` : ''}
 
-          ${offer.referral ? `
-            <div style="margin-top: 20px;">
-              <div style="font-size: 13px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🎁 Offre de parrainage</div>
-              <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                  <div>
-                    <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase;">Pour le parrain</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #10b981;">${offer.referral.sponsor}</div>
-                  </div>
-                  <div>
-                    <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase;">Pour le filleul</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #60a5fa;">${offer.referral.sponsored}</div>
-                  </div>
+          <!-- Essential Details Grid -->
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px;">
+            <!-- Payments & Withdrawals -->
+            <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px 14px; border-left: 3px solid ${offer.paymentsFreeAbroad ? '#10b981' : '#ef4444'};">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; color: #94a3b8;">🌍 Paiements à l'étranger</span>
+                <span style="font-size: 13px; font-weight: 600; color: ${offer.paymentsFreeAbroad ? '#10b981' : '#ef4444'};">${offer.paymentsFreeAbroad ? 'Gratuits' : 'Avec frais'}</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px 14px; border-left: 3px solid ${offer.withdrawalsFreeAbroad === 'Illimite' || offer.withdrawalsFreeAbroad > 0 ? '#10b981' : '#ef4444'};">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; color: #94a3b8;">💳 Retraits hors zone €</span>
+                <span style="font-size: 13px; font-weight: 600; color: ${offer.withdrawalsFreeAbroad === 'Illimite' || offer.withdrawalsFreeAbroad > 0 ? '#10b981' : '#ef4444'};">
+                  ${offer.withdrawalsFreeAbroad === 'Illimite' ? 'Illimités' :
+                    offer.withdrawalsFreeAbroad === 0 ? 'Payants' :
+                    offer.withdrawalsFreeAbroad + offer.withdrawalsFreeAbroadUnit}
+                </span>
+              </div>
+            </div>
+
+            ${offer.insuranceTravel ? `
+              <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 12px 14px; border-left: 3px solid #10b981;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; color: #94a3b8;">✈️ Assurance voyage</span>
+                  <span style="font-size: 13px; font-weight: 600; color: #10b981;">Incluse</span>
                 </div>
-                ${offer.referral.conditions ? `<div style="margin-top: 12px; font-size: 12px; color: #94a3b8; font-style: italic;">Conditions : ${offer.referral.conditions}</div>` : ''}
+              </div>
+            ` : ''}
+
+            ${offer.cashback ? `
+              <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 12px 14px; border-left: 3px solid #10b981;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; color: #94a3b8;">💰 Cashback</span>
+                  <span style="font-size: 13px; font-weight: 600; color: #10b981;">${offer.cashbackRate || 'Oui'}</span>
+                </div>
+              </div>
+            ` : ''}
+
+            ${offer.loungeAccess ? `
+              <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 12px 14px; border-left: 3px solid #10b981;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; color: #94a3b8;">🛋️ Salons aéroport</span>
+                  <span style="font-size: 13px; font-weight: 600; color: #10b981;">${offer.loungeAccessDetails || 'Inclus'}</span>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Additional Info (compact) -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px;">
+            ${offer.incomeRequired ? `
+              <div style="font-size: 11px; color: #64748b;">Revenus: <span style="color: #e2e8f0; font-weight: 600;">${offer.incomeRequired}€</span></div>
+            ` : '<div style="font-size: 11px; color: #10b981;">Sans condition de revenus</div>'}
+            <div style="font-size: 11px; color: #64748b;">IBAN: <span style="color: #e2e8f0; font-weight: 600;">${offer.iban}</span></div>
+            ${offer.cardDebitDiffere ? '<div style="font-size: 11px; color: #10b981;">✓ Débit différé</div>' : ''}
+            ${offer.overdraftAvailable ? '<div style="font-size: 11px; color: #10b981;">✓ Découvert autorisé</div>' : ''}
+          </div>
+
+          <!-- Referral (compact) -->
+          ${offer.referral ? `
+            <div style="margin-top: 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1)); border-radius: 10px; padding: 14px; border: 1px solid rgba(16, 185, 129, 0.15);">
+              <div style="font-size: 11px; color: #10b981; margin-bottom: 8px; font-weight: 600;">🎁 PARRAINAGE</div>
+              <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between;">
+                <div style="flex: 1;">
+                  <div style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">Parrain</div>
+                  <div style="font-size: 16px; font-weight: 700; color: #10b981;">${offer.referral.sponsor}</div>
+                </div>
+                <div style="color: #64748b;">→</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">Filleul</div>
+                  <div style="font-size: 16px; font-weight: 700; color: #60a5fa;">${offer.referral.sponsored}</div>
+                </div>
               </div>
             </div>
           ` : ''}
 
-          <div style="margin-top: 24px; padding: 16px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 24px;">&#127919;</span>
-            <div>
-              <div style="font-size: 12px; color: #818cf8; margin-bottom: 2px;">Profil cible</div>
-              <div style="color: #e2e8f0; font-size: 15px;">${offer.targetProfile}</div>
-            </div>
+          <!-- Target Profile (compact) -->
+          <div style="margin-top: 16px; padding: 12px 14px; background: rgba(99, 102, 241, 0.08); border-radius: 10px; border-left: 3px solid #6366f1;">
+            <div style="font-size: 10px; color: #818cf8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">🎯 Profil Cible</div>
+            <div style="color: #e2e8f0; font-size: 13px; line-height: 1.4;">${offer.targetProfile}</div>
           </div>
         </div>
       `;
