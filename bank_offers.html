@@ -151,6 +151,10 @@
         display: flex;
       }
 
+      .desktop-view-switcher {
+        display: none !important;
+      }
+
       .desktop-results-count {
         display: none;
       }
@@ -571,7 +575,7 @@
             Reinitialiser les filtres
           </button>
 
-          <div class="flex gap-2">
+          <div class="flex gap-2 desktop-view-switcher">
             <button id="viewTable" onclick="setViewMode('table')" class="btn-secondary active">
               Tableau
             </button>
