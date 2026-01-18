@@ -439,6 +439,51 @@
       font-weight: 800;
       font-size: 14px;
     }
+
+    /* Filter checkboxes styles */
+    .filter-group {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .filter-group-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #e2e8f0;
+      transition: color 0.2s ease;
+    }
+
+    .checkbox-label:hover {
+      color: #a5b4fc;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #6366f1;
+    }
   </style>
 </head>
 <body>
@@ -543,42 +588,91 @@
           </div>
 
           <!-- Bank Type -->
-          <select id="filterBankType" class="filter-select">
-            <option value="">Toutes les banques</option>
-            <option value="traditional">Traditionnelles</option>
-            <option value="online">En ligne</option>
-            <option value="neo">Neobanques</option>
-            <option value="crypto">Cartes Crypto</option>
-          </select>
+          <div class="filter-group">
+            <label class="filter-group-label">Type de banque</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="bankType" value="traditional" checked>
+                <span>Traditionnelles</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="bankType" value="online" checked>
+                <span>En ligne</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="bankType" value="neo" checked>
+                <span>Neobanques</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="bankType" value="crypto" checked>
+                <span>Cartes Crypto</span>
+              </label>
+            </div>
+          </div>
 
           <!-- Offer Type -->
-          <select id="filterOfferType" class="filter-select">
-            <option value="">Toutes les gammes</option>
-            <option value="basic">Essentiel</option>
-            <option value="premium">Premium</option>
-            <option value="black">Haut de gamme</option>
-          </select>
+          <div class="filter-group">
+            <label class="filter-group-label">Gamme d'offre</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="offerType" value="basic" checked>
+                <span>Essentiel</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="offerType" value="premium" checked>
+                <span>Premium</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="offerType" value="black" checked>
+                <span>Haut de gamme</span>
+              </label>
+            </div>
+          </div>
 
           <!-- Free Card -->
-          <select id="filterFreeCard" class="filter-select">
-            <option value="">Prix de l'offre</option>
-            <option value="yes">Gratuites uniquement</option>
-            <option value="no">Payantes uniquement</option>
-          </select>
+          <div class="filter-group">
+            <label class="filter-group-label">Prix de l'offre</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="freeCard" value="yes" checked>
+                <span>Gratuites</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="freeCard" value="no" checked>
+                <span>Payantes</span>
+              </label>
+            </div>
+          </div>
 
           <!-- Free Abroad -->
-          <select id="filterFreeAbroad" class="filter-select">
-            <option value="">Frais à l'étranger</option>
-            <option value="yes">Sans frais de paiement</option>
-            <option value="no">Avec frais</option>
-          </select>
+          <div class="filter-group">
+            <label class="filter-group-label">Frais à l'étranger</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="freeAbroad" value="yes" checked>
+                <span>Sans frais</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="freeAbroad" value="no" checked>
+                <span>Avec frais</span>
+              </label>
+            </div>
+          </div>
 
           <!-- Insurance -->
-          <select id="filterInsurance" class="filter-select">
-            <option value="">Assurance voyage</option>
-            <option value="yes">Avec assurance</option>
-            <option value="no">Sans assurance</option>
-          </select>
+          <div class="filter-group">
+            <label class="filter-group-label">Assurance voyage</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="insurance" value="yes" checked>
+                <span>Avec assurance</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="insurance" value="no" checked>
+                <span>Sans assurance</span>
+              </label>
+            </div>
+          </div>
 
           <!-- Max Budget -->
           <input type="number" id="maxBudget" placeholder="Budget max EUR/mois" class="filter-select">
@@ -833,26 +927,58 @@
       return { traditional: '#3b82f6', online: '#10b981', neo: '#f59e0b' }[type] || '#64748b';
     }
 
+    // Helper function to get checked values from checkbox group
+    function getCheckedValues(name) {
+      const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
     // Filter and sort
     function getFilteredOffers() {
       const search = document.getElementById('searchInput').value.toLowerCase();
-      const bankType = document.getElementById('filterBankType').value;
-      const offerType = document.getElementById('filterOfferType').value;
-      const freeCard = document.getElementById('filterFreeCard').value;
-      const freeAbroad = document.getElementById('filterFreeAbroad').value;
-      const insurance = document.getElementById('filterInsurance').value;
+      const bankTypes = getCheckedValues('bankType');
+      const offerTypes = getCheckedValues('offerType');
+      const freeCardValues = getCheckedValues('freeCard');
+      const freeAbroadValues = getCheckedValues('freeAbroad');
+      const insuranceValues = getCheckedValues('insurance');
       const maxBudget = document.getElementById('maxBudget').value;
 
       let filtered = bankOffers.filter(offer => {
         if (search && !offer.bank.toLowerCase().includes(search) && !offer.offerName.toLowerCase().includes(search)) return false;
-        if (bankType && offer.bankType !== bankType) return false;
-        if (offerType && offer.offerType !== offerType) return false;
-        if (freeCard === 'yes' && offer.monthlyFee !== 0) return false;
-        if (freeCard === 'no' && offer.monthlyFee === 0) return false;
-        if (freeAbroad === 'yes' && !offer.paymentsFreeAbroad) return false;
-        if (freeAbroad === 'no' && offer.paymentsFreeAbroad) return false;
-        if (insurance === 'yes' && !offer.insuranceTravel) return false;
-        if (insurance === 'no' && offer.insuranceTravel) return false;
+
+        // Filter by bank type - only show if checked
+        if (bankTypes.length > 0 && !bankTypes.includes(offer.bankType)) return false;
+
+        // Filter by offer type - only show if checked
+        if (offerTypes.length > 0 && !offerTypes.includes(offer.offerType)) return false;
+
+        // Filter by free card
+        if (freeCardValues.length > 0) {
+          const isFree = offer.monthlyFee === 0;
+          const showFree = freeCardValues.includes('yes');
+          const showPaid = freeCardValues.includes('no');
+          if (isFree && !showFree) return false;
+          if (!isFree && !showPaid) return false;
+        }
+
+        // Filter by free abroad
+        if (freeAbroadValues.length > 0) {
+          const hasFreeAbroad = offer.paymentsFreeAbroad;
+          const showFree = freeAbroadValues.includes('yes');
+          const showPaid = freeAbroadValues.includes('no');
+          if (hasFreeAbroad && !showFree) return false;
+          if (!hasFreeAbroad && !showPaid) return false;
+        }
+
+        // Filter by insurance
+        if (insuranceValues.length > 0) {
+          const hasInsurance = offer.insuranceTravel;
+          const showWithInsurance = insuranceValues.includes('yes');
+          const showWithoutInsurance = insuranceValues.includes('no');
+          if (hasInsurance && !showWithInsurance) return false;
+          if (!hasInsurance && !showWithoutInsurance) return false;
+        }
+
         if (maxBudget && offer.monthlyFee > parseFloat(maxBudget)) return false;
         return true;
       });
@@ -1014,12 +1140,14 @@
 
     function resetFilters() {
       document.getElementById('searchInput').value = '';
-      document.getElementById('filterBankType').value = '';
-      document.getElementById('filterOfferType').value = '';
-      document.getElementById('filterFreeCard').value = '';
-      document.getElementById('filterFreeAbroad').value = '';
-      document.getElementById('filterInsurance').value = '';
       document.getElementById('maxBudget').value = '';
+
+      // Check all checkboxes
+      const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+      allCheckboxes.forEach(checkbox => {
+        checkbox.checked = true;
+      });
+
       render();
     }
 
@@ -1222,15 +1350,16 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Event listeners for filters
       document.getElementById('searchInput').addEventListener('input', render);
-      document.getElementById('filterBankType').addEventListener('change', render);
-      document.getElementById('filterOfferType').addEventListener('change', render);
-      document.getElementById('filterFreeCard').addEventListener('change', render);
-      document.getElementById('filterFreeAbroad').addEventListener('change', render);
-      document.getElementById('filterInsurance').addEventListener('change', render);
       document.getElementById('maxBudget').addEventListener('input', render);
       document.getElementById('sortKey').addEventListener('change', (e) => {
         sortKey = e.target.value;
         render();
+      });
+
+      // Event listeners for all filter checkboxes
+      const filterCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="bankType"], input[type="checkbox"][name^="offerType"], input[type="checkbox"][name^="freeCard"], input[type="checkbox"][name^="freeAbroad"], input[type="checkbox"][name^="insurance"]');
+      filterCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', render);
       });
 
       // Mobile navigation
