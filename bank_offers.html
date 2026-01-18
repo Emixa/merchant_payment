@@ -1575,7 +1575,7 @@ const bankOffers = [
 ];
 
 // Composant principal
-export default function BankOffersComparator() {
+function BankOffersComparator() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBankType, setFilterBankType] = useState('');
   const [filterOfferType, setFilterOfferType] = useState('');
@@ -2554,3 +2554,10 @@ const getSelectStyle = (isActive) => ({
   fontWeight: isActive ? 600 : 400,
   transition: 'all 0.2s ease'
 });
+
+    // Rendre le composant dans le DOM
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<BankOffersComparator />);
+  </script>
+</body>
+</html>
