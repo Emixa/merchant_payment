@@ -1653,6 +1653,104 @@ export default function BankOffersComparator() {
     setMaxBudget('');
   };
 
+  // Fonction pour obtenir les filtres actifs sous forme de badges
+  const getActiveFilters = () => {
+    const filters = [];
+
+    if (searchQuery) {
+      filters.push({
+        key: 'search',
+        label: `Recherche: "${searchQuery}"`,
+        onRemove: () => setSearchQuery('')
+      });
+    }
+
+    if (filterBankType) {
+      const labels = {
+        traditional: 'Banques traditionnelles',
+        online: 'Banques en ligne',
+        neo: 'Néobanques'
+      };
+      filters.push({
+        key: 'bankType',
+        label: labels[filterBankType],
+        onRemove: () => setFilterBankType('')
+      });
+    }
+
+    if (filterOfferType) {
+      const labels = {
+        basic: 'Gamme Essentiel',
+        premium: 'Gamme Premium',
+        black: 'Gamme Haut de gamme'
+      };
+      filters.push({
+        key: 'offerType',
+        label: labels[filterOfferType],
+        onRemove: () => setFilterOfferType('')
+      });
+    }
+
+    if (filterFreeCard === 'yes') {
+      filters.push({
+        key: 'freeCard',
+        label: 'Gratuites uniquement',
+        onRemove: () => setFilterFreeCard('')
+      });
+    } else if (filterFreeCard === 'no') {
+      filters.push({
+        key: 'freeCard',
+        label: 'Payantes uniquement',
+        onRemove: () => setFilterFreeCard('')
+      });
+    }
+
+    if (filterFreeAbroad === 'yes') {
+      filters.push({
+        key: 'freeAbroad',
+        label: 'Sans frais à l\'étranger',
+        onRemove: () => setFilterFreeAbroad('')
+      });
+    } else if (filterFreeAbroad === 'no') {
+      filters.push({
+        key: 'freeAbroad',
+        label: 'Avec frais à l\'étranger',
+        onRemove: () => setFilterFreeAbroad('')
+      });
+    }
+
+    if (filterInsurance === 'yes') {
+      filters.push({
+        key: 'insurance',
+        label: 'Avec assurance voyage',
+        onRemove: () => setFilterInsurance('')
+      });
+    } else if (filterInsurance === 'no') {
+      filters.push({
+        key: 'insurance',
+        label: 'Sans assurance voyage',
+        onRemove: () => setFilterInsurance('')
+      });
+    }
+
+    if (maxBudget) {
+      filters.push({
+        key: 'budget',
+        label: `Budget max: ${maxBudget}€/mois`,
+        onRemove: () => setMaxBudget('')
+      });
+    }
+
+    return filters;
+  };
+
+  // Compter les filtres actifs
+  const activeFilters = useMemo(() => getActiveFilters(), [
+    searchQuery, filterBankType, filterOfferType, filterFreeCard,
+    filterFreeAbroad, filterInsurance, maxBudget
+  ]);
+  const activeFiltersCount = activeFilters.length;
+
   // Modal de détails
   const OfferModal = ({ offer, onClose }) => (
     <div style={{
@@ -2005,6 +2103,89 @@ export default function BankOffersComparator() {
         background: 'rgba(30, 41, 59, 0.5)', borderRadius: 16,
         padding: '20px', border: '1px solid rgba(255,255,255,0.05)'
       }}>
+        {/* En-tête avec statistiques */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16,
+          paddingBottom: 12,
+          borderBottom: '1px solid rgba(255,255,255,0.05)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#f8fafc' }}>
+              {filteredOffers.length} offre{filteredOffers.length > 1 ? 's' : ''} trouvée{filteredOffers.length > 1 ? 's' : ''}
+            </span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 10px',
+                borderRadius: 20,
+                background: 'rgba(99, 102, 241, 0.15)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#c7d2fe'
+              }}>
+                <span style={{ fontSize: 10 }}>🔍</span>
+                {activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          <div style={{ fontSize: 12, color: '#64748b' }}>
+            Sur {bankOffers.length} offres au total
+          </div>
+        </div>
+
+        {/* Badges des filtres actifs */}
+        {activeFiltersCount > 0 && (
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            marginBottom: 16,
+            padding: '12px',
+            background: 'rgba(99, 102, 241, 0.05)',
+            borderRadius: 10,
+            border: '1px solid rgba(99, 102, 241, 0.1)'
+          }}>
+            {activeFilters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={filter.onRemove}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  background: 'rgba(99, 102, 241, 0.2)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  color: '#e0e7ff',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                }}
+              >
+                <span>{filter.label}</span>
+                <span style={{ fontSize: 14, fontWeight: 700 }}>×</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -2019,15 +2200,18 @@ export default function BankOffersComparator() {
               onChange={e => setSearchQuery(e.target.value)}
               style={{
                 width: '100%', padding: '12px 16px', borderRadius: 10,
-                background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.1)',
-                color: '#e2e8f0', fontSize: 14, outline: 'none'
+                background: searchQuery ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.8)',
+                border: searchQuery ? '2px solid #6366f1' : '1px solid rgba(255,255,255,0.1)',
+                color: '#e2e8f0', fontSize: 14, outline: 'none',
+                fontWeight: searchQuery ? 600 : 400,
+                transition: 'all 0.2s ease'
               }}
             />
           </div>
 
           {/* Type banque */}
           <select value={filterBankType} onChange={e => setFilterBankType(e.target.value)}
-            style={selectStyle}>
+            style={getSelectStyle(!!filterBankType)}>
             <option value="">Toutes les banques</option>
             <option value="traditional">Traditionnelles</option>
             <option value="online">En ligne</option>
@@ -2036,7 +2220,7 @@ export default function BankOffersComparator() {
 
           {/* Type offre */}
           <select value={filterOfferType} onChange={e => setFilterOfferType(e.target.value)}
-            style={selectStyle}>
+            style={getSelectStyle(!!filterOfferType)}>
             <option value="">Toutes les gammes</option>
             <option value="basic">Essentiel</option>
             <option value="premium">Premium</option>
@@ -2045,7 +2229,7 @@ export default function BankOffersComparator() {
 
           {/* Gratuite */}
           <select value={filterFreeCard} onChange={e => setFilterFreeCard(e.target.value)}
-            style={selectStyle}>
+            style={getSelectStyle(!!filterFreeCard)}>
             <option value="">Prix de l'offre</option>
             <option value="yes">Gratuites uniquement</option>
             <option value="no">Payantes uniquement</option>
@@ -2053,7 +2237,7 @@ export default function BankOffersComparator() {
 
           {/* Étranger */}
           <select value={filterFreeAbroad} onChange={e => setFilterFreeAbroad(e.target.value)}
-            style={selectStyle}>
+            style={getSelectStyle(!!filterFreeAbroad)}>
             <option value="">Frais à l'étranger</option>
             <option value="yes">Sans frais de paiement</option>
             <option value="no">Avec frais</option>
@@ -2061,7 +2245,7 @@ export default function BankOffersComparator() {
 
           {/* Assurance */}
           <select value={filterInsurance} onChange={e => setFilterInsurance(e.target.value)}
-            style={selectStyle}>
+            style={getSelectStyle(!!filterInsurance)}>
             <option value="">Assurance voyage</option>
             <option value="yes">Avec assurance</option>
             <option value="no">Sans assurance</option>
@@ -2075,7 +2259,7 @@ export default function BankOffersComparator() {
               value={maxBudget}
               onChange={e => setMaxBudget(e.target.value)}
               style={{
-                ...selectStyle, width: '100%'
+                ...getSelectStyle(!!maxBudget), width: '100%'
               }}
             />
           </div>
@@ -2083,13 +2267,39 @@ export default function BankOffersComparator() {
 
         {/* Actions */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <button onClick={resetFilters} style={{
-            padding: '10px 20px', borderRadius: 10, border: 'none',
-            background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer'
-          }}>
-            Réinitialiser les filtres
-          </button>
+          {activeFiltersCount > 0 ? (
+            <button onClick={resetFilters} style={{
+              padding: '10px 20px', borderRadius: 10, border: 'none',
+              background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444',
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8,
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'}
+            >
+              <span>Réinitialiser les filtres</span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 20,
+                height: 20,
+                borderRadius: 10,
+                background: 'rgba(239, 68, 68, 0.3)',
+                fontSize: 11,
+                fontWeight: 700
+              }}>{activeFiltersCount}</span>
+            </button>
+          ) : (
+            <button style={{
+              padding: '10px 20px', borderRadius: 10, border: 'none',
+              background: 'rgba(100, 116, 139, 0.1)', color: '#64748b',
+              fontSize: 13, fontWeight: 600, cursor: 'not-allowed'
+            }} disabled>
+              Aucun filtre actif
+            </button>
+          )}
 
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setViewMode('table')} style={{
@@ -2110,7 +2320,7 @@ export default function BankOffersComparator() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, color: '#64748b' }}>Trier par :</span>
             <select value={sortKey} onChange={e => setSortKey(e.target.value)} style={{
-              ...selectStyle, minWidth: 120
+              ...getSelectStyle(false), minWidth: 120
             }}>
               <option value="monthlyFee">Prix</option>
               <option value="bank">Banque</option>
@@ -2301,14 +2511,16 @@ export default function BankOffersComparator() {
   );
 }
 
-const selectStyle = {
+const getSelectStyle = (isActive) => ({
   padding: '12px 14px',
   borderRadius: 10,
-  background: 'rgba(15, 23, 42, 0.8)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: '#e2e8f0',
+  background: isActive ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.8)',
+  border: isActive ? '2px solid #6366f1' : '1px solid rgba(255,255,255,0.1)',
+  color: isActive ? '#c7d2fe' : '#e2e8f0',
   fontSize: 13,
   outline: 'none',
   cursor: 'pointer',
-  minWidth: 0
-};
+  minWidth: 0,
+  fontWeight: isActive ? 600 : 400,
+  transition: 'all 0.2s ease'
+});
