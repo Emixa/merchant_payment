@@ -863,9 +863,40 @@
       filtered.sort((a, b) => {
         let aVal = a[sortKey];
         let bVal = b[sortKey];
+
+        // Normalisation des valeurs pour les colonnes de coût
+        const costColumns = ['monthlyFee', 'inactivityFee', 'swiftOutgoing', 'swiftIncoming', 'incomeRequired'];
+        if (costColumns.includes(sortKey)) {
+          // Traiter 'Gratuit' comme 0
+          if (aVal === 'Gratuit' || aVal === 0) aVal = 0;
+          if (bVal === 'Gratuit' || bVal === 0) bVal = 0;
+
+          // Traiter 'N/A', null, undefined comme une valeur très élevée (à la fin)
+          if (aVal === 'N/A' || aVal === null || aVal === undefined) aVal = 999999;
+          if (bVal === 'N/A' || bVal === null || bVal === undefined) bVal = 999999;
+
+          // Convertir les strings numériques en nombres
+          if (typeof aVal === 'string' && !isNaN(parseFloat(aVal))) aVal = parseFloat(aVal);
+          if (typeof bVal === 'string' && !isNaN(parseFloat(bVal))) bVal = parseFloat(bVal);
+
+          // Si encore des strings (par exemple "50EUR/trim."), essayer d'extraire le nombre
+          if (typeof aVal === 'string') {
+            const numMatch = aVal.match(/[\d.]+/);
+            aVal = numMatch ? parseFloat(numMatch[0]) : 999999;
+          }
+          if (typeof bVal === 'string') {
+            const numMatch = bVal.match(/[\d.]+/);
+            bVal = numMatch ? parseFloat(numMatch[0]) : 999999;
+          }
+
+          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+
+        // Pour les autres colonnes
         if (aVal === null || aVal === 'Illimité' || aVal === 'Personnalisable') aVal = sortKey.includes('max') ? 999999 : -1;
         if (bVal === null || bVal === 'Illimité' || bVal === 'Personnalisable') bVal = sortKey.includes('max') ? 999999 : -1;
-        if (typeof aVal === 'string') return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        if (typeof aVal === 'string' && typeof bVal === 'string') return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        if (typeof aVal === 'boolean' && typeof bVal === 'boolean') return sortOrder === 'asc' ? (aVal === bVal ? 0 : aVal ? -1 : 1) : (aVal === bVal ? 0 : aVal ? 1 : -1);
         return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
       });
 
