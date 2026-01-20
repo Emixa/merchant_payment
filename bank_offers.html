@@ -868,92 +868,99 @@
         // Normalisation des valeurs pour les colonnes de coût
         const costColumns = ['monthlyFee', 'inactivityFee', 'swiftOutgoing', 'swiftIncoming', 'swiftForeignCurrencySurcharge', 'incomeRequired'];
         if (costColumns.includes(sortKey)) {
-          // Traiter 'Gratuit' comme 0
-          if (aVal === 'Gratuit' || aVal === 0) aVal = 0;
-          if (bVal === 'Gratuit' || bVal === 0) bVal = 0;
+          // Fonction pour normaliser et catégoriser les valeurs
+          // Priority: 0 = Gratuit, 1 = Texte, 2 = Nombre, 3 = N/A/vide
+          const normalizeValue = (val, key) => {
+            // Catégorie 0: Gratuit
+            if (val === 'Gratuit' || val === 0) {
+              return { priority: 0, value: 0, text: 'Gratuit' };
+            }
 
-          // Traiter 'N/A', null, undefined, '—' comme une valeur très élevée (à la fin)
-          if (aVal === 'N/A' || aVal === null || aVal === undefined || aVal === '—') aVal = 999999;
-          if (bVal === 'N/A' || bVal === null || bVal === undefined || bVal === '—') bVal = 999999;
+            // Catégorie 3: N/A, null, undefined, '—'
+            if (val === 'N/A' || val === 'NA' || val === null || val === undefined || val === '—' || val === '') {
+              return { priority: 3, value: 0, text: 'N/A' };
+            }
 
-          // Gestion spéciale pour swiftForeignCurrencySurcharge avec des formats variés
-          if (sortKey === 'swiftForeignCurrencySurcharge') {
-            // Extraire le montant minimum ou le pourcentage
-            if (typeof aVal === 'string') {
-              // Chercher "min XXX€" ou "min XX€"
-              const minMatch = aVal.match(/min\s+([\d,]+)€/);
-              if (minMatch) {
-                aVal = parseFloat(minMatch[1].replace(',', '.'));
-              } else {
-                // Chercher un pourcentage "X%" ou "X,X%"
-                const pctMatch = aVal.match(/([\d,]+)%/);
-                if (pctMatch) {
-                  aVal = parseFloat(pctMatch[1].replace(',', '.')) * 100; // Multiplier pour comparer avec les montants fixes
-                } else if (aVal.toLowerCase().includes('taux réel') || aVal.toLowerCase().includes('auto')) {
-                  aVal = 1; // Très bon (taux réel)
-                } else if (aVal.toLowerCase().includes('réduit') || aVal.toLowerCase().includes('-')) {
-                  aVal = 5; // Bon (réduit)
+            // Pour les valeurs de type string
+            if (typeof val === 'string') {
+              let extractedNum = null;
+              let remainingText = val;
+
+              // Gestion spéciale pour swiftForeignCurrencySurcharge
+              if (key === 'swiftForeignCurrencySurcharge') {
+                // Chercher "min XXX€"
+                const minMatch = val.match(/min\s+([\d,]+)€/);
+                if (minMatch) {
+                  extractedNum = parseFloat(minMatch[1].replace(',', '.'));
                 } else {
-                  aVal = 999999;
+                  // Chercher un pourcentage
+                  const pctMatch = val.match(/([\d,]+)%/);
+                  if (pctMatch) {
+                    extractedNum = parseFloat(pctMatch[1].replace(',', '.')) * 100;
+                  } else if (val.toLowerCase().includes('taux réel') || val.toLowerCase().includes('auto')) {
+                    extractedNum = 1;
+                  } else if (val.toLowerCase().includes('réduit')) {
+                    extractedNum = 5;
+                  }
                 }
               }
-            }
-            if (typeof bVal === 'string') {
-              const minMatch = bVal.match(/min\s+([\d,]+)€/);
-              if (minMatch) {
-                bVal = parseFloat(minMatch[1].replace(',', '.'));
-              } else {
-                const pctMatch = bVal.match(/([\d,]+)%/);
-                if (pctMatch) {
-                  bVal = parseFloat(pctMatch[1].replace(',', '.')) * 100;
-                } else if (bVal.toLowerCase().includes('taux réel') || bVal.toLowerCase().includes('auto')) {
-                  bVal = 1;
-                } else if (bVal.toLowerCase().includes('réduit') || bVal.toLowerCase().includes('-')) {
-                  bVal = 5;
+
+              // Pour swiftOutgoing/swiftIncoming : gérer "0,1% (min 23€)"
+              if ((key === 'swiftOutgoing' || key === 'swiftIncoming')) {
+                const minMatch = val.match(/min\s+([\d,]+)€/);
+                if (minMatch) {
+                  extractedNum = parseFloat(minMatch[1].replace(',', '.'));
                 } else {
-                  bVal = 999999;
+                  const numMatch = val.match(/[\d,.]+/);
+                  if (numMatch) {
+                    extractedNum = parseFloat(numMatch[0].replace(',', '.'));
+                  }
                 }
               }
+
+              // Si pas encore extrait, essayer d'extraire le premier nombre
+              if (extractedNum === null) {
+                const numMatch = val.match(/[\d,.]+/);
+                if (numMatch) {
+                  extractedNum = parseFloat(numMatch[0].replace(',', '.'));
+                }
+              }
+
+              // Déterminer si c'est du texte pur ou un nombre
+              if (extractedNum !== null && !isNaN(extractedNum)) {
+                // C'est un nombre (catégorie 2)
+                return { priority: 2, value: extractedNum, text: val };
+              } else {
+                // C'est du texte pur (catégorie 1)
+                return { priority: 1, value: 0, text: val.toLowerCase() };
+              }
             }
-          }
 
-          // Convertir les strings numériques en nombres
-          if (typeof aVal === 'string' && !isNaN(parseFloat(aVal))) aVal = parseFloat(aVal);
-          if (typeof bVal === 'string' && !isNaN(parseFloat(bVal))) bVal = parseFloat(bVal);
-
-          // Pour swiftOutgoing/swiftIncoming : gérer "0,1% (min 23€)"
-          if ((sortKey === 'swiftOutgoing' || sortKey === 'swiftIncoming') && typeof aVal === 'string') {
-            // Chercher "min XXX€" en priorité
-            const minMatch = aVal.match(/min\s+([\d,]+)€/);
-            if (minMatch) {
-              aVal = parseFloat(minMatch[1].replace(',', '.'));
-            } else {
-              // Sinon extraire le premier nombre
-              const numMatch = aVal.match(/[\d,.]+/);
-              aVal = numMatch ? parseFloat(numMatch[0].replace(',', '.')) : 999999;
+            // Pour les valeurs déjà numériques
+            if (typeof val === 'number') {
+              return { priority: 2, value: val, text: val.toString() };
             }
-          }
-          if ((sortKey === 'swiftOutgoing' || sortKey === 'swiftIncoming') && typeof bVal === 'string') {
-            const minMatch = bVal.match(/min\s+([\d,]+)€/);
-            if (minMatch) {
-              bVal = parseFloat(minMatch[1].replace(',', '.'));
-            } else {
-              const numMatch = bVal.match(/[\d,.]+/);
-              bVal = numMatch ? parseFloat(numMatch[0].replace(',', '.')) : 999999;
-            }
+
+            // Par défaut, traiter comme N/A
+            return { priority: 3, value: 0, text: 'N/A' };
+          };
+
+          const aNorm = normalizeValue(aVal, sortKey);
+          const bNorm = normalizeValue(bVal, sortKey);
+
+          // Comparer d'abord par priorité
+          if (aNorm.priority !== bNorm.priority) {
+            return sortOrder === 'asc' ? aNorm.priority - bNorm.priority : bNorm.priority - aNorm.priority;
           }
 
-          // Si encore des strings (par exemple "50EUR/trim."), essayer d'extraire le nombre
-          if (typeof aVal === 'string') {
-            const numMatch = aVal.match(/[\d,.]+/);
-            aVal = numMatch ? parseFloat(numMatch[0].replace(',', '.')) : 999999;
+          // Ensuite comparer par valeur selon le type
+          if (aNorm.priority === 1) {
+            // Pour le texte, comparer alphabétiquement
+            return sortOrder === 'asc' ? aNorm.text.localeCompare(bNorm.text) : bNorm.text.localeCompare(aNorm.text);
+          } else {
+            // Pour les nombres (priorité 0, 2, 3), comparer numériquement
+            return sortOrder === 'asc' ? aNorm.value - bNorm.value : bNorm.value - aNorm.value;
           }
-          if (typeof bVal === 'string') {
-            const numMatch = bVal.match(/[\d,.]+/);
-            bVal = numMatch ? parseFloat(numMatch[0].replace(',', '.')) : 999999;
-          }
-
-          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
         }
 
         // Pour les autres colonnes
