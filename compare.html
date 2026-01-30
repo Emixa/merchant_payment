@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparateur d'Offres - Face à Face</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding-top: 64px;
+    }
+
+    /* Navigation styles */
+    nav {
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-link {
+      background-color: rgba(75, 85, 99, 0.5);
+      min-width: fit-content;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(75, 85, 99, 0.7);
+    }
+
+    .nav-link.active {
+      background: linear-gradient(135deg, #6366F1, #EC4899);
+    }
+
+    .nav-link.active:hover {
+      background: linear-gradient(135deg, #5558E3, #DB3A88);
+    }
+
+    #mobile-menu {
+      transition: all 0.3s ease;
+    }
+
+    #mobile-menu.show {
+      display: block !important;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .selector-card {
+      background: linear-gradient(180deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .selector-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .selector-card.selected {
+      border-color: #6366f1;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .filter-select {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .filter-select:focus {
+      border-color: #6366f1;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .compare-table th {
+      padding: 16px 20px;
+      text-align: left;
+      background: rgba(15, 23, 42, 0.8);
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      white-space: nowrap;
+      width: 200px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .compare-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .compare-table tr:hover {
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .compare-header {
+      position: sticky;
+      top: 64px;
+      z-index: 40;
+      background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(15,23,42,0.95));
+      backdrop-filter: blur(12px);
+    }
+
+    .bank-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      object-fit: cover;
+    }
+
+    .bank-logo-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .badge {
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .badge-good {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10b981;
+    }
+
+    .badge-neutral {
+      background: rgba(148, 163, 184, 0.1);
+      color: #94a3b8;
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .badge-bad {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+    }
+
+    .type-basic { background: linear-gradient(135deg, #334155, #475569); }
+    .type-premium { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+    .type-black { background: linear-gradient(135deg, #1e1e1e, #3f3f3f); }
+
+    .price-free { color: #10b981; }
+    .price-low { color: #22c55e; }
+    .price-medium { color: #eab308; }
+    .price-high { color: #f97316; }
+
+    .winner {
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .winner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .section-header {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent);
+      border-left: 3px solid #6366f1;
+    }
+
+    .section-header th {
+      color: #a5b4fc;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .empty-slot {
+      border: 2px dashed rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.02);
+      transition: all 0.3s ease;
+    }
+
+    .empty-slot:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .btn-primary {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background: #6366f1;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #4f46e5;
+    }
+
+    .btn-secondary {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.05);
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* Desktop table view */
+    .desktop-comparison {
+      display: block;
+    }
+
+    .mobile-comparison {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .desktop-comparison {
+        display: none;
+      }
+
+      .mobile-comparison {
+        display: block;
+      }
+
+      .bank-logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      .mobile-section {
+        margin-bottom: 16px;
+      }
+
+      .mobile-section-title {
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.15), transparent);
+        border-left: 3px solid #6366f1;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .mobile-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .mobile-row:last-child {
+        border-bottom: none;
+      }
+
+      .mobile-row-label {
+        flex: 0 0 35%;
+        font-size: 13px;
+        color: #94a3b8;
+        padding-right: 10px;
+      }
+
+      .mobile-row-values {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .mobile-value-box {
+        padding: 8px;
+        text-align: center;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.03);
+      }
+
+      .mobile-value-box:first-child {
+        border-left: 2px solid rgba(99, 102, 241, 0.4);
+      }
+
+      .mobile-value-box:last-child {
+        border-left: 2px solid rgba(236, 72, 153, 0.4);
+      }
+
+      .mobile-value-box.winner {
+        background: rgba(16, 185, 129, 0.12);
+      }
+
+      .mobile-value-content {
+        font-size: 13px;
+        color: #e2e8f0;
+        word-break: break-word;
+      }
+
+      .mobile-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 14px;
+        background: rgba(15,23,42,0.95);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        position: sticky;
+        top: 64px;
+        z-index: 30;
+        backdrop-filter: blur(10px);
+      }
+
+      .mobile-header-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .mobile-header-item:first-child {
+        border-left: 3px solid #6366f1;
+        padding-left: 10px;
+      }
+
+      .mobile-header-item:last-child {
+        border-left: 3px solid #ec4899;
+        padding-left: 10px;
+      }
+
+      .mobile-header-item .bank-logo {
+        width: 36px;
+        height: 36px;
+        font-size: 11px;
+      }
+
+      .mobile-header-info {
+        min-width: 0;
+      }
+
+      .mobile-header-bank {
+        font-weight: 600;
+        font-size: 13px;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .mobile-header-offer {
+        font-size: 11px;
+        color: #94a3b8;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1a2634] border-b border-gray-800" style="backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <h1 class="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text" style="background-clip: text; -webkit-background-clip: text;">Payment Infos</h1>
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex space-x-4">
+          <a href="index.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+            European Map
+          </a>
+          <a href="merchant_fees.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+            Merchant Fees
+          </a>
+          <a href="bank_offers.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+            Bank Offers
+          </a>
+          <a href="compare.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+            Comparateur
+          </a>
+        </div>
+
+        <!-- Mobile Navigation Button -->
+        <div class="md:hidden">
+          <button id="mobile-menu-button" class="text-gray-300 hover:text-white p-2 rounded-lg transition-colors">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 absolute w-full bg-[#1a2634] shadow-lg">
+      <div class="px-2 pt-2 pb-3 space-y-2">
+        <a href="index.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+          European Map
+        </a>
+        <a href="merchant_fees.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+          Merchant Fees
+        </a>
+        <a href="bank_offers.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+          Bank Offers
+        </a>
+        <a href="compare.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+          Comparateur
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent mb-4" style="background-clip: text; -webkit-background-clip: text;">
+        Comparateur Face à Face
+      </h1>
+      <p class="text-gray-400 max-w-2xl mx-auto">
+        Sélectionnez deux offres bancaires pour les comparer en détail, critère par critère.
+      </p>
+    </div>
+
+    <!-- Selectors -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <!-- Offer 1 Selector -->
+      <div class="selector-card rounded-2xl p-6" id="selector1">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">1</div>
+          <h2 class="text-lg font-semibold">Première offre</h2>
+        </div>
+        <select id="offer1Select" class="filter-select mb-4">
+          <option value="">Sélectionner une offre...</option>
+        </select>
+        <div id="offer1Preview" class="hidden">
+          <!-- Preview will be populated by JS -->
+        </div>
+      </div>
+
+      <!-- Offer 2 Selector -->
+      <div class="selector-card rounded-2xl p-6" id="selector2">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 font-bold">2</div>
+          <h2 class="text-lg font-semibold">Deuxième offre</h2>
+        </div>
+        <select id="offer2Select" class="filter-select mb-4">
+          <option value="">Sélectionner une offre...</option>
+        </select>
+        <div id="offer2Preview" class="hidden">
+          <!-- Preview will be populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div id="summarySection" class="hidden mb-8">
+      <div class="summary-card rounded-2xl p-6">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          Résumé de la comparaison
+        </h3>
+        <div id="summaryContent" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Summary will be populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div id="comparisonSection" class="hidden">
+      <!-- Desktop View -->
+      <div class="desktop-comparison">
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="compare-table" id="compareTable">
+              <!-- Table will be populated by JS -->
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile View -->
+      <div class="mobile-comparison" id="mobileComparison">
+        <!-- Mobile comparison will be populated by JS -->
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-16">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-indigo-500/20 to-pink-500/20 flex items-center justify-center">
+        <svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-400 mb-2">Sélectionnez deux offres</h3>
+      <p class="text-gray-500 max-w-md mx-auto">
+        Utilisez les menus déroulants ci-dessus pour choisir deux offres bancaires à comparer.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Bank offers data (same as bank_offers.html)
+    const bankOffers = [
+      // BOURSOBANK
+      { id: 'bourso-welcome', bank: 'BoursoBank', bankType: 'online', bankColor: '#00a9ce', bankLogo: 'BB', offerName: 'Welcome', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: '5EUR/mois si aucun paiement', inactivityFee: 5, inactivityFeeCondition: 'Si aucun paiement dans le mois', cardType: 'Visa Classic', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal (3j ouvrés)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 1, withdrawalsFreeAbroadUnit: '/mois', withdrawalsExtraFee: '1,69%', freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 20, swiftIncoming: '0,1% (min 20€)', swiftForeignCurrencySurcharge: 'Gratuit (marge 1%)', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 5000, maxWithdrawalWeek: 500, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Gratuite sans condition de revenus', 'Paiements à l\'étranger gratuits'], targetProfile: 'Débutants, étudiants', url: 'https://www.boursobank.com' },
+      { id: 'bourso-ultim', bank: 'BoursoBank', bankType: 'online', bankColor: '#00a9ce', bankLogo: 'BB', offerName: 'Ultim', offerType: 'premium', monthlyFee: 0, monthlyFeeCondition: '9EUR/mois si aucun paiement', inactivityFee: 9, inactivityFeeCondition: 'Si aucun paiement dans le mois', cardType: 'Visa Premier', cardDebit: 'immediate', cardDebitDiffere: true, cardDebitDiffereCondition: '2 400EUR revenus nets', incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal (3j ouvrés)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 3, withdrawalsFreeAbroadUnit: '/mois', withdrawalsExtraFee: '1,69%', freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 20, swiftIncoming: '0,1% (min 20€)', swiftForeignCurrencySurcharge: 'Gratuit (marge 1%)', insuranceTravel: true, insuranceTravelDetails: 'Visa Premier : frais médicaux, rapatriement, bagages', insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 20000, maxWithdrawalWeek: 2000, overdraftAvailable: true, overdraftMax: 2500, virtualCard: true, iban: 'FR', highlights: ['Carte gratuite equivalent Visa Premier', 'Assurances voyage incluses', 'Sans frais à l\'étranger'], targetProfile: 'Voyageurs occasionnels, actifs', url: 'https://www.boursobank.com' },
+      { id: 'bourso-metal', bank: 'BoursoBank', bankType: 'online', bankColor: '#00a9ce', bankLogo: 'BB', offerName: 'Metal', offerType: 'black', monthlyFee: 9.90, monthlyFeeCondition: '5,90EUR/mois version dématérialisée', cardType: 'Visa Ultim Metal', cardDebit: 'immediate', cardDebitDiffere: true, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Carte Metal en coffret (3j ouvrés)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 'Gratuit', swiftIncoming: '0,1% (min 20€)', swiftForeignCurrencySurcharge: 'Gratuit (marge 1%)', insuranceTravel: true, insuranceTravelDetails: 'Couverture jusqu\'à 5M EUR, annulation voyage 10K EUR', insuranceMeansPayment: true, loungeAccess: true, loungeAccessDetails: 'Smart Delay en cas de retard', cashback: true, cashbackRate: '0,2% EUR / 2% devises', maxPaymentMonth: 50000, maxWithdrawalWeek: 3000, overdraftAvailable: true, overdraftMax: 10000, virtualCard: true, iban: 'FR', highlights: ['Retraits illimités dans le monde', 'Cashback sur achats', 'Conciergerie et salons'], targetProfile: 'Grands voyageurs, clients premium', url: 'https://www.boursobank.com' },
+
+      // FORTUNEO
+      { id: 'fortuneo-fosfo', bank: 'Fortuneo', bankType: 'online', bankColor: '#d6007d', bankLogo: 'FO', offerName: 'Fosfo', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: '3EUR/mois si aucun paiement', inactivityFee: 3, inactivityFeeCondition: 'Si aucun paiement dans le mois', cardType: 'Mastercard Standard', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: 'Illimité', swiftOutgoing: '0,1% (min 23€)', swiftIncoming: 12, swiftForeignCurrencySurcharge: '0,1% + marge 1%', insuranceTravel: true, insuranceTravelDetails: 'Assistance medicale et rapatriement basique', insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 8000, maxWithdrawalWeek: 500, overdraftAvailable: true, overdraftMax: 200, virtualCard: true, iban: 'FR', highlights: ['Retraits gratuits partout dans le monde', 'Sans condition de revenus', 'La plus genereuse à l\'étranger'], targetProfile: 'Voyageurs, tous profils', url: 'https://www.fortuneo.fr' },
+      { id: 'fortuneo-gold', bank: 'Fortuneo', bankType: 'online', bankColor: '#d6007d', bankLogo: 'FO', offerName: 'Gold CB Mastercard', offerType: 'premium', monthlyFee: 0, monthlyFeeCondition: '9EUR/mois si aucun paiement', inactivityFee: 9, inactivityFeeCondition: 'Si aucun paiement dans le mois', cardType: 'Gold Mastercard', cardDebit: 'both', cardDebitDiffere: true, cardDebitDiffereCondition: '2 200EUR revenus nets', incomeRequired: 2200, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: 'Illimité', swiftOutgoing: '0,1% (min 23€)', swiftIncoming: 12, swiftForeignCurrencySurcharge: '0,1% + marge 1%', insuranceTravel: true, insuranceTravelDetails: 'Annulation voyage, frais médicaux, bagages, location voiture', insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 8000, maxWithdrawalWeek: 1000, overdraftAvailable: true, overdraftMax: 200, virtualCard: true, iban: 'FR', highlights: ['Seule Gold gratuite du marché', 'Débit différé disponible', 'Retraits illimités monde entier'], targetProfile: 'Voyageurs réguliers, revenus 1800EUR+', url: 'https://www.fortuneo.fr' },
+      { id: 'fortuneo-world-elite', bank: 'Fortuneo', bankType: 'online', bankColor: '#d6007d', bankLogo: 'FO', offerName: 'World Elite', offerType: 'black', monthlyFee: 0, monthlyFeeCondition: '50EUR/trim. si versement < 4000EUR/mois', inactivityFee: '50EUR/trim.', inactivityFeeCondition: 'Si versements < 4000EUR/mois', cardType: 'World Elite Mastercard', cardDebit: 'both', cardDebitDiffere: true, incomeRequired: 4000, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: 'Illimité', swiftOutgoing: '0,1% (min 23€)', swiftIncoming: 12, swiftForeignCurrencySurcharge: '0,1% + marge 1%', insuranceTravel: true, insuranceTravelDetails: 'RC 5M EUR, frais médicaux 155K EUR, annulation 10K EUR', insuranceMeansPayment: true, loungeAccess: true, loungeAccessDetails: 'Accès salons Mastercard + conciergerie 24/7', cashback: false, maxPaymentMonth: 12000, maxWithdrawalWeek: 1600, overdraftAvailable: true, overdraftMax: 200, virtualCard: true, iban: 'FR', highlights: ['Seule World Elite gratuite du marché', 'Conciergerie 24/7', 'Assurances ultra-complètes'], targetProfile: 'Cadres supérieurs, grands voyageurs', url: 'https://www.fortuneo.fr' },
+
+      // N26
+      { id: 'n26-standard', bank: 'N26', bankType: 'neo', bankColor: '#36a18b', bankLogo: 'N26', offerName: 'Standard', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: 'Carte physique 10EUR', cardType: 'Mastercard (virtuelle)', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: '10€', deliveryPackaging: 'Standard - Virtuelle gratuite / Physique 10€ (15j) ou Express 25€ (3j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '1,7%', freeWithdrawalsEuro: '3/mois', freeWithdrawalsEuroExtra: '2EUR/retrait', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 80000, maxWithdrawalWeek: 1050, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['100% gratuit', 'Paiements gratuits partout', 'Gestion budgétaire avancée'], targetProfile: 'Petits budgets, complementaire', url: 'https://n26.com/fr-fr' },
+      { id: 'n26-smart', bank: 'N26', bankType: 'neo', bankColor: '#36a18b', bankLogo: 'N26', offerName: 'Smart', offerType: 'basic', monthlyFee: 4.90, monthlyFeeCondition: null, cardType: 'Mastercard', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Physique incluse (15j) ou Express 25€ (3j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '1,7%', freeWithdrawalsEuro: '5/mois', freeWithdrawalsEuroExtra: '2EUR/retrait', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 80000, maxWithdrawalWeek: 1050, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Sous-comptes pour budgetiser', 'Carte physique incluse', 'Support téléphone'], targetProfile: 'Utilisateurs quotidiens', url: 'https://n26.com/fr-fr' },
+      { id: 'n26-you', bank: 'N26', bankType: 'neo', bankColor: '#36a18b', bankLogo: 'N26', offerName: 'You', offerType: 'premium', monthlyFee: 9.90, monthlyFeeCondition: null, cardType: 'Mastercard', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Physique incluse (15j) ou Express 25€ (3j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: '5/mois', freeWithdrawalsEuroExtra: '2EUR/retrait', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: true, insuranceTravelDetails: 'Allianz : frais médicaux, vols, bagages, sports d\'hiver', insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 80000, maxWithdrawalWeek: 1050, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Retraits illimités hors zone euro', 'Assurance voyage Allianz', 'Epargne remuneree 1,3%'], targetProfile: 'Voyageurs frequents', url: 'https://n26.com/fr-fr' },
+      { id: 'n26-metal', bank: 'N26', bankType: 'neo', bankColor: '#36a18b', bankLogo: 'N26', offerName: 'Metal', offerType: 'black', monthlyFee: 16.90, monthlyFeeCondition: null, cardType: 'Mastercard Metal', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Carte Metal incluse (15j) ou Express 25€ (3j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: '8/mois', freeWithdrawalsEuroExtra: '2EUR/retrait', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: true, insuranceTravelDetails: 'Voyage complète + location voiture + smartphone', insuranceMeansPayment: true, loungeAccess: true, loungeAccessDetails: 'Accès salons achetable dans l\'app', cashback: false, maxPaymentMonth: 80000, maxWithdrawalWeek: 1050, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Carte metal premium', 'Assurance smartphone incluse', 'Service client prioritaire'], targetProfile: 'Clients premium, voyageurs', url: 'https://n26.com/fr-fr' },
+
+      // REVOLUT
+      { id: 'revolut-standard', bank: 'Revolut', bankType: 'neo', bankColor: '#0066ff', bankLogo: 'R', offerName: 'Standard', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: 'Livraison carte 5,99EUR', cardType: 'Mastercard/Visa', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: '5,99€', deliveryPackaging: 'Standard - Courrier postal (max 10j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 200, withdrawalsFreeAbroadUnit: 'EUR/mois', withdrawalsExtraFee: '2% au-dela', freeWithdrawalsEuro: '200EUR/mois', freeWithdrawalsEuroExtra: '2% au-dela', swiftOutgoing: 15, swiftIncoming: 5, swiftForeignCurrencySurcharge: '1% >1000€/mois', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 'Personnalisable', maxWithdrawalWeek: 'Personnalisable', overdraftAvailable: false, virtualCard: true, virtualCardDisposable: true, iban: 'LT/FR', highlights: ['Multi-devises', 'Change au taux interbancaire', 'Crypto et actions'], targetProfile: 'Usage international, fintech', url: 'https://www.revolut.com/fr-FR' },
+      { id: 'revolut-plus', bank: 'Revolut', bankType: 'neo', bankColor: '#0066ff', bankLogo: 'R', offerName: 'Plus', offerType: 'basic', monthlyFee: 3.99, monthlyFeeCondition: null, cardType: 'Mastercard/Visa', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: '5,99€', deliveryPackaging: 'Standard - Courrier postal (max 10j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 200, withdrawalsFreeAbroadUnit: 'EUR/mois', withdrawalsExtraFee: '2% au-dela', freeWithdrawalsEuro: '200EUR/mois', freeWithdrawalsEuroExtra: '2% au-dela', swiftOutgoing: 15, swiftIncoming: 5, swiftForeignCurrencySurcharge: '1% >1000€/mois', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 'Personnalisable', maxWithdrawalWeek: 'Personnalisable', overdraftAvailable: false, virtualCard: true, iban: 'LT/FR', highlights: ['Change illimite', 'Cartes virtuelles jetables', 'Protection achats'], targetProfile: 'Utilisateurs réguliers', url: 'https://www.revolut.com/fr-FR' },
+      { id: 'revolut-premium', bank: 'Revolut', bankType: 'neo', bankColor: '#0066ff', bankLogo: 'R', offerName: 'Premium', offerType: 'premium', monthlyFee: 9.99, monthlyFeeCondition: null, cardType: 'Mastercard/Visa Premium', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Livraison express gratuite', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 400, withdrawalsFreeAbroadUnit: 'EUR/mois', withdrawalsExtraFee: '2% au-dela', freeWithdrawalsEuro: '400EUR/mois', freeWithdrawalsEuroExtra: '2% au-dela', swiftOutgoing: 15, swiftIncoming: 5, swiftForeignCurrencySurcharge: 'Réduit', insuranceTravel: true, insuranceTravelDetails: 'Retard vol, bagages perdus, frais médicaux', insuranceMeansPayment: true, loungeAccess: true, loungeAccessDetails: '1 acces salon gratuit/mois', cashback: true, cashbackRate: '0,1% Europe', maxPaymentMonth: 'Personnalisable', maxWithdrawalWeek: 'Personnalisable', overdraftAvailable: false, virtualCard: true, iban: 'LT/FR', highlights: ['1 acces lounge/mois', 'Cashback 0,1%', 'Assurance téléphone'], targetProfile: 'Voyageurs réguliers, fintech', url: 'https://www.revolut.com/fr-FR' },
+      { id: 'revolut-metal', bank: 'Revolut', bankType: 'neo', bankColor: '#0066ff', bankLogo: 'R', offerName: 'Metal', offerType: 'black', monthlyFee: 16.99, monthlyFeeCondition: null, cardType: 'Metal Mastercard/Visa', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Carte Metal en coffret, livraison express gratuite', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 800, withdrawalsFreeAbroadUnit: 'EUR/mois', withdrawalsExtraFee: '2% au-dela', freeWithdrawalsEuro: '800EUR/mois', freeWithdrawalsEuroExtra: '2% au-dela', swiftOutgoing: 15, swiftIncoming: 5, swiftForeignCurrencySurcharge: '-40% sur frais', insuranceTravel: true, insuranceTravelDetails: 'Complete : retard, bagages, médicaux, location voiture', insuranceMeansPayment: true, loungeAccess: true, loungeAccessDetails: '3 acces salons/mois + 1 invite', cashback: true, cashbackRate: '1% hors Europe', maxPaymentMonth: 'Personnalisable', maxWithdrawalWeek: 'Personnalisable', overdraftAvailable: false, virtualCard: true, iban: 'LT/FR', highlights: ['Carte metal', '3 lounges/mois', 'Cashback 1% hors Europe'], targetProfile: 'Grands voyageurs, premium', url: 'https://www.revolut.com/fr-FR' },
+
+      // TRADE REPUBLIC
+      { id: 'trade-republic-standard', bank: 'Trade Republic', bankType: 'neo', bankColor: '#05d9a3', bankLogo: 'TR', offerName: 'Trade Republic', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: 'Carte Virtual gratuite, Classic 5EUR (unique), Mirror 50EUR (unique)', cardType: 'Visa Debit', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit / 5€ / 50€', deliveryPackaging: 'Virtual gratuite - Classic 5€ (3-5j) - Mirror Metal 50€ (3-5j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '1EUR si < 100EUR', freeWithdrawalsEuro: 'Gratuits si >= 100EUR', freeWithdrawalsEuroExtra: '1EUR si < 100EUR', swiftOutgoing: 'Gratuit', swiftIncoming: 'Gratuit', swiftForeignCurrencySurcharge: 'Taux de change auto', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: true, cashbackRate: '1% si >= 100EUR', maxPaymentMonth: 'Personnalisable', maxWithdrawalWeek: 'Personnalisable', overdraftAvailable: false, virtualCard: true, iban: 'DE', highlights: ['2% interets sur solde sans plafond', 'Trading 1EUR/ordre (actions/ETF)', 'Cashback 1% si >= 100EUR'], targetProfile: 'Investisseurs, épargnants', url: 'https://traderepublic.com/fr-fr', savingsRate: '2%', savingsRateDetails: 'Intérêts sur tout le solde sans plafond' },
+
+      // HELLO BANK
+      { id: 'hello-one', bank: 'Hello bank!', bankType: 'online', bankColor: '#009a9a', bankLogo: 'HB', offerName: 'Hello One', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: 'Gratuit', cardType: 'Visa Hello One', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '1,50EUR', freeWithdrawalsEuro: '5 gratuits/mois', freeWithdrawalsEuroExtra: '1EUR au-dela', swiftOutgoing: 15, swiftIncoming: 11, swiftForeignCurrencySurcharge: '0,1% (min 15€)', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 6000, maxWithdrawalWeek: 1000, overdraftAvailable: true, overdraftMax: 200, virtualCard: true, iban: 'FR', highlights: ['Filiale BNP Paribas', 'Paiements gratuits', '100% mobile'], targetProfile: 'Jeunes, premier compte', url: 'https://www.hellobank.fr' },
+      { id: 'hello-prime', bank: 'Hello bank!', bankType: 'online', bankColor: '#009a9a', bankLogo: 'HB', offerName: 'Hello Prime', offerType: 'premium', monthlyFee: 5, monthlyFeeCondition: 'Gratuit avec 1000EUR revenus', cardType: 'Visa Premier', cardDebit: 'both', cardDebitDiffere: true, cardDebitDiffereCondition: '1 000EUR revenus nets', incomeRequired: 1000, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '1,50EUR', freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 15, swiftIncoming: 11, swiftForeignCurrencySurcharge: '0,1% (min 15€)', insuranceTravel: true, insuranceTravelDetails: 'Assurances Visa Premier', insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 12000, maxWithdrawalWeek: 2000, overdraftAvailable: true, overdraftMax: 500, virtualCard: true, iban: 'FR', highlights: ['Visa Premier a 5EUR', 'Assurances incluses', 'Débit différé'], targetProfile: 'Actifs, voyageurs occasionnels', url: 'https://www.hellobank.fr' },
+
+      // MONABANQ
+      { id: 'monabanq-pratiq', bank: 'Monabanq', bankType: 'online', bankColor: '#e31837', bankLogo: 'MQ', offerName: 'Pratiq', offerType: 'basic', monthlyFee: 3, monthlyFeeCondition: null, cardType: 'Visa Classic', cardDebit: 'both', cardDebitDiffere: true, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: false, paymentsFeeAbroad: '2%', withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '2EUR + 2%', freeWithdrawalsEuro: '3 gratuits/mois', freeWithdrawalsEuroExtra: '1EUR au-dela', swiftOutgoing: 20, swiftIncoming: 6.50, swiftForeignCurrencySurcharge: '0,1% (min 6,5€)', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 3000, maxWithdrawalWeek: 500, overdraftAvailable: true, overdraftMax: 250, virtualCard: false, iban: 'FR', highlights: ['Sans condition revenus', 'Débit différé disponible', 'Filiale Crédit Mutuel'], targetProfile: 'Tous profils', url: 'https://www.monabanq.com' },
+      { id: 'monabanq-uniq', bank: 'Monabanq', bankType: 'online', bankColor: '#e31837', bankLogo: 'MQ', offerName: 'Uniq', offerType: 'premium', monthlyFee: 6, monthlyFeeCondition: null, cardType: 'Visa Premier', cardDebit: 'both', cardDebitDiffere: true, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: false, paymentsFeeAbroad: '2%', withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '2EUR + 2%', freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 20, swiftIncoming: 6.50, swiftForeignCurrencySurcharge: '0,1% (min 6,5€)', insuranceTravel: true, insuranceTravelDetails: 'Assurances Visa Premier complètes', insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 6000, maxWithdrawalWeek: 1500, overdraftAvailable: true, overdraftMax: 500, virtualCard: false, iban: 'FR', highlights: ['Visa Premier sans condition', 'Assurances complètes', 'Débit différé inclus'], targetProfile: 'Actifs, voyageurs', url: 'https://www.monabanq.com' },
+
+      // ORANGE BANK
+      { id: 'orange-standard', bank: 'Orange Bank', bankType: 'neo', bankColor: '#ff7900', bankLogo: 'OB', offerName: 'Standard', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: null, cardType: 'Mastercard Standard', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '2EUR', freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 3000, maxWithdrawalWeek: 500, overdraftAvailable: true, overdraftMax: 100, virtualCard: true, iban: 'FR', highlights: ['100% gratuit', 'Paiements mobiles', 'Assistant vocal'], targetProfile: 'Clients Orange, jeunes', url: 'https://www.orangebank.fr' },
+      { id: 'orange-premium', bank: 'Orange Bank', bankType: 'neo', bankColor: '#ff7900', bankLogo: 'OB', offerName: 'Premium', offerType: 'premium', monthlyFee: 7.99, monthlyFeeCondition: '4.99EUR pour clients Orange', cardType: 'Mastercard Premium', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Standard - Courrier postal', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: true, insuranceTravelDetails: 'Assurance voyage basique', insuranceMeansPayment: true, loungeAccess: false, cashback: false, maxPaymentMonth: 6000, maxWithdrawalWeek: 1500, overdraftAvailable: true, overdraftMax: 400, virtualCard: true, iban: 'FR', highlights: ['Retraits monde gratuits', 'Avantage clients Orange', 'Assurances incluses'], targetProfile: 'Clients Orange, actifs', url: 'https://www.orangebank.fr' },
+
+      // LYDIA
+      { id: 'lydia-blue', bank: 'Lydia', bankType: 'neo', bankColor: '#0085ff', bankLogo: 'LY', offerName: 'Lydia Blue', offerType: 'basic', monthlyFee: 0, monthlyFeeCondition: null, cardType: 'Visa', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: '9,90€', deliveryPackaging: 'Standard - Courrier postal (5-7j)', paymentsFreeAbroad: false, paymentsFeeAbroad: '1,5%', withdrawalsFreeAbroad: 0, withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: '1EUR + 1,5%', freeWithdrawalsEuro: '1EUR/retrait', freeWithdrawalsEuroExtra: '1EUR/retrait', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: false, insuranceMeansPayment: false, loungeAccess: false, cashback: false, maxPaymentMonth: 5000, maxWithdrawalWeek: 250, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Paiements entre amis', 'Cagnottes faciles', 'App intuitive'], targetProfile: 'Jeunes, partage depenses', url: 'https://lydia-app.com' },
+      { id: 'lydia-green', bank: 'Lydia', bankType: 'neo', bankColor: '#0085ff', bankLogo: 'LY', offerName: 'Lydia Green', offerType: 'premium', monthlyFee: 7.90, monthlyFeeCondition: null, cardType: 'Visa Premium', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Courrier postal (5-7j)', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 3, withdrawalsFreeAbroadUnit: '/mois', withdrawalsExtraFee: '1EUR + 1,5%', freeWithdrawalsEuro: '3/mois', freeWithdrawalsEuroExtra: '1EUR au-dela', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: true, insuranceTravelDetails: 'Assurance voyage basique', insuranceMeansPayment: true, loungeAccess: false, cashback: true, cashbackRate: '0,5% shopping', maxPaymentMonth: 20000, maxWithdrawalWeek: 1000, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Cashback 0,5%', 'Paiements gratuits etranger', 'Assurances voyage'], targetProfile: 'Actifs, voyageurs occasionnels', url: 'https://lydia-app.com' },
+      { id: 'lydia-black', bank: 'Lydia', bankType: 'neo', bankColor: '#0085ff', bankLogo: 'LY', offerName: 'Lydia Black', offerType: 'black', monthlyFee: 19.90, monthlyFeeCondition: null, cardType: 'Visa Infinite Metal', cardDebit: 'immediate', cardDebitDiffere: false, incomeRequired: null, deliveryCost: 'Gratuit', deliveryPackaging: 'Premium - Carte Metal en coffret', paymentsFreeAbroad: true, withdrawalsFreeAbroad: 'Illimité', withdrawalsFreeAbroadUnit: '', withdrawalsExtraFee: null, freeWithdrawalsEuro: 'Illimité', swiftOutgoing: 'N/A', swiftIncoming: 'N/A', insuranceTravel: true, insuranceTravelDetails: 'Complète : frais médicaux 1M EUR, bagages, annulation', insuranceMeansPayment: true, loungeAccess: true, loungeAccessDetails: 'Accès salons Priority Pass', cashback: true, cashbackRate: '1% tous achats', maxPaymentMonth: 50000, maxWithdrawalWeek: 3000, overdraftAvailable: false, virtualCard: true, iban: 'FR', highlights: ['Carte metal Visa Infinite', 'Cashback 1%', 'Lounges illimités'], targetProfile: 'Premium, grands voyageurs', url: 'https://lydia-app.com' }
+    ];
+
+    // DOM Elements
+    const offer1Select = document.getElementById('offer1Select');
+    const offer2Select = document.getElementById('offer2Select');
+    const offer1Preview = document.getElementById('offer1Preview');
+    const offer2Preview = document.getElementById('offer2Preview');
+    const summarySection = document.getElementById('summarySection');
+    const summaryContent = document.getElementById('summaryContent');
+    const comparisonSection = document.getElementById('comparisonSection');
+    const compareTable = document.getElementById('compareTable');
+    const mobileComparison = document.getElementById('mobileComparison');
+    const emptyState = document.getElementById('emptyState');
+
+    // Populate selects with offers grouped by bank
+    function populateSelects() {
+      const banks = [...new Set(bankOffers.map(o => o.bank))];
+
+      banks.forEach(bank => {
+        const offers = bankOffers.filter(o => o.bank === bank);
+        const optgroup1 = document.createElement('optgroup');
+        optgroup1.label = bank;
+        const optgroup2 = document.createElement('optgroup');
+        optgroup2.label = bank;
+
+        offers.forEach(offer => {
+          const option1 = document.createElement('option');
+          option1.value = offer.id;
+          option1.textContent = `${offer.offerName} - ${offer.monthlyFee}€/mois`;
+          optgroup1.appendChild(option1);
+
+          const option2 = document.createElement('option');
+          option2.value = offer.id;
+          option2.textContent = `${offer.offerName} - ${offer.monthlyFee}€/mois`;
+          optgroup2.appendChild(option2);
+        });
+
+        offer1Select.appendChild(optgroup1);
+        offer2Select.appendChild(optgroup2);
+      });
+    }
+
+    // Get offer by ID
+    function getOfferById(id) {
+      return bankOffers.find(o => o.id === id);
+    }
+
+    // Format value for display
+    function formatValue(value, key) {
+      if (value === null || value === undefined || value === '') return '<span class="text-gray-500">-</span>';
+      if (value === true) return '<span class="badge badge-good"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Oui</span>';
+      if (value === false) return '<span class="badge badge-neutral"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg> Non</span>';
+      if (value === 'Illimité') return '<span class="badge badge-good">Illimité</span>';
+      if (value === 'Gratuit' || value === 0) return '<span class="price-free font-semibold">Gratuit</span>';
+      if (typeof value === 'number') {
+        if (key === 'monthlyFee') {
+          if (value === 0) return '<span class="price-free font-semibold">Gratuit</span>';
+          if (value <= 5) return `<span class="price-low font-semibold">${value}€/mois</span>`;
+          if (value <= 10) return `<span class="price-medium font-semibold">${value}€/mois</span>`;
+          return `<span class="price-high font-semibold">${value}€/mois</span>`;
+        }
+        if (key === 'incomeRequired') return `${value.toLocaleString()}€`;
+        if (key === 'maxPaymentMonth' || key === 'maxWithdrawalWeek') return `${value.toLocaleString()}€`;
+        return value;
+      }
+      return value;
+    }
+
+    // Get offer type badge
+    function getOfferTypeBadge(type) {
+      const labels = { basic: 'Standard', premium: 'Premium', black: 'Black' };
+      return `<span class="badge type-${type} text-white">${labels[type] || type}</span>`;
+    }
+
+    // Create preview card
+    function createPreview(offer, previewEl) {
+      previewEl.innerHTML = `
+        <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+          <div class="bank-logo bank-logo-fallback" style="background: ${offer.bankColor}">${offer.bankLogo}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-white">${offer.bank}</div>
+            <div class="text-sm text-gray-400">${offer.offerName}</div>
+          </div>
+          <div class="text-right">
+            ${getOfferTypeBadge(offer.offerType)}
+            <div class="text-sm mt-1 ${offer.monthlyFee === 0 ? 'price-free' : 'text-gray-400'}">${offer.monthlyFee === 0 ? 'Gratuit' : offer.monthlyFee + '€/mois'}</div>
+          </div>
+        </div>
+      `;
+      previewEl.classList.remove('hidden');
+    }
+
+    // Compare two values and return winner (1, 2, or 0 for tie)
+    function compareValues(val1, val2, key, lowerIsBetter = false) {
+      // Handle booleans - true is better
+      if (typeof val1 === 'boolean' && typeof val2 === 'boolean') {
+        if (val1 === val2) return 0;
+        return val1 ? 1 : 2;
+      }
+
+      // Handle "Illimité" as best value
+      if (val1 === 'Illimité' && val2 !== 'Illimité') return 1;
+      if (val2 === 'Illimité' && val1 !== 'Illimité') return 2;
+      if (val1 === 'Illimité' && val2 === 'Illimité') return 0;
+
+      // Handle "Gratuit" as best value for fees
+      if (val1 === 'Gratuit' && val2 !== 'Gratuit') return 1;
+      if (val2 === 'Gratuit' && val1 !== 'Gratuit') return 2;
+
+      // Handle numbers
+      if (typeof val1 === 'number' && typeof val2 === 'number') {
+        if (val1 === val2) return 0;
+        if (lowerIsBetter) return val1 < val2 ? 1 : 2;
+        return val1 > val2 ? 1 : 2;
+      }
+
+      // Handle null/undefined
+      if ((val1 === null || val1 === undefined) && (val2 !== null && val2 !== undefined)) return 2;
+      if ((val2 === null || val2 === undefined) && (val1 !== null && val1 !== undefined)) return 1;
+
+      return 0;
+    }
+
+    // Generate comparison summary
+    function generateSummary(offer1, offer2) {
+      let wins1 = 0, wins2 = 0, ties = 0;
+
+      const comparisons = [
+        { key: 'monthlyFee', lowerIsBetter: true },
+        { key: 'insuranceTravel' },
+        { key: 'insuranceMeansPayment' },
+        { key: 'loungeAccess' },
+        { key: 'cashback' },
+        { key: 'virtualCard' },
+        { key: 'overdraftAvailable' },
+        { key: 'withdrawalsFreeAbroad', lowerIsBetter: false },
+        { key: 'maxPaymentMonth', lowerIsBetter: false },
+        { key: 'maxWithdrawalWeek', lowerIsBetter: false }
+      ];
+
+      comparisons.forEach(({ key, lowerIsBetter }) => {
+        const result = compareValues(offer1[key], offer2[key], key, lowerIsBetter);
+        if (result === 1) wins1++;
+        else if (result === 2) wins2++;
+        else ties++;
+      });
+
+      return { wins1, wins2, ties };
+    }
+
+    // Build comparison table
+    function buildComparisonTable(offer1, offer2) {
+      const sections = [
+        {
+          title: 'Informations Générales',
+          rows: [
+            { label: 'Banque', key1: 'bank', key2: 'bank' },
+            { label: 'Offre', key1: 'offerName', key2: 'offerName' },
+            { label: 'Type', key1: 'offerType', key2: 'offerType', format: getOfferTypeBadge },
+            { label: 'Type de banque', key1: 'bankType', key2: 'bankType', format: (v) => v === 'online' ? 'Banque en ligne' : v === 'neo' ? 'Néobanque' : 'Banque traditionnelle' },
+            { label: 'Profil cible', key1: 'targetProfile', key2: 'targetProfile' }
+          ]
+        },
+        {
+          title: 'Tarification',
+          rows: [
+            { label: 'Frais mensuels', key1: 'monthlyFee', key2: 'monthlyFee', compare: true, lowerIsBetter: true },
+            { label: 'Condition frais', key1: 'monthlyFeeCondition', key2: 'monthlyFeeCondition' },
+            { label: 'Frais d\'inactivité', key1: 'inactivityFee', key2: 'inactivityFee', compare: true, lowerIsBetter: true },
+            { label: 'Revenus requis', key1: 'incomeRequired', key2: 'incomeRequired', compare: true, lowerIsBetter: true },
+            { label: 'Coût livraison carte', key1: 'deliveryCost', key2: 'deliveryCost' }
+          ]
+        },
+        {
+          title: 'Livraison & Packaging',
+          rows: [
+            { label: 'Mode de livraison', key1: 'deliveryPackaging', key2: 'deliveryPackaging' }
+          ]
+        },
+        {
+          title: 'Carte Bancaire',
+          rows: [
+            { label: 'Type de carte', key1: 'cardType', key2: 'cardType' },
+            { label: 'Type de débit', key1: 'cardDebit', key2: 'cardDebit', format: (v) => v === 'immediate' ? 'Immédiat' : v === 'both' ? 'Immédiat ou différé' : v },
+            { label: 'Débit différé', key1: 'cardDebitDiffere', key2: 'cardDebitDiffere', compare: true },
+            { label: 'Carte virtuelle', key1: 'virtualCard', key2: 'virtualCard', compare: true },
+            { label: 'IBAN', key1: 'iban', key2: 'iban' }
+          ]
+        },
+        {
+          title: 'Paiements & Retraits',
+          rows: [
+            { label: 'Paiements gratuits à l\'étranger', key1: 'paymentsFreeAbroad', key2: 'paymentsFreeAbroad', compare: true },
+            { label: 'Retraits gratuits à l\'étranger', key1: 'withdrawalsFreeAbroad', key2: 'withdrawalsFreeAbroad', compare: true },
+            { label: 'Retraits gratuits en euros', key1: 'freeWithdrawalsEuro', key2: 'freeWithdrawalsEuro' },
+            { label: 'Frais retrait supplémentaire', key1: 'withdrawalsExtraFee', key2: 'withdrawalsExtraFee' },
+            { label: 'Plafond paiement/mois', key1: 'maxPaymentMonth', key2: 'maxPaymentMonth', compare: true },
+            { label: 'Plafond retrait/semaine', key1: 'maxWithdrawalWeek', key2: 'maxWithdrawalWeek', compare: true }
+          ]
+        },
+        {
+          title: 'Virements SWIFT',
+          rows: [
+            { label: 'Virement sortant', key1: 'swiftOutgoing', key2: 'swiftOutgoing', compare: true, lowerIsBetter: true },
+            { label: 'Virement entrant', key1: 'swiftIncoming', key2: 'swiftIncoming', compare: true, lowerIsBetter: true },
+            { label: 'Frais de change', key1: 'swiftForeignCurrencySurcharge', key2: 'swiftForeignCurrencySurcharge' }
+          ]
+        },
+        {
+          title: 'Assurances & Services',
+          rows: [
+            { label: 'Assurance voyage', key1: 'insuranceTravel', key2: 'insuranceTravel', compare: true },
+            { label: 'Détails assurance voyage', key1: 'insuranceTravelDetails', key2: 'insuranceTravelDetails' },
+            { label: 'Assurance moyens de paiement', key1: 'insuranceMeansPayment', key2: 'insuranceMeansPayment', compare: true },
+            { label: 'Accès salons aéroport', key1: 'loungeAccess', key2: 'loungeAccess', compare: true },
+            { label: 'Détails salons', key1: 'loungeAccessDetails', key2: 'loungeAccessDetails' }
+          ]
+        },
+        {
+          title: 'Avantages',
+          rows: [
+            { label: 'Cashback', key1: 'cashback', key2: 'cashback', compare: true },
+            { label: 'Taux cashback', key1: 'cashbackRate', key2: 'cashbackRate' },
+            { label: 'Découvert autorisé', key1: 'overdraftAvailable', key2: 'overdraftAvailable', compare: true },
+            { label: 'Montant max découvert', key1: 'overdraftMax', key2: 'overdraftMax', compare: true },
+            { label: 'Taux épargne', key1: 'savingsRate', key2: 'savingsRate' }
+          ]
+        }
+      ];
+
+      let html = `
+        <thead>
+          <tr class="compare-header">
+            <th style="width: 200px;"></th>
+            <th style="text-align: center; min-width: 200px;">
+              <div class="flex flex-col items-center gap-2 py-2">
+                <div class="bank-logo bank-logo-fallback" style="background: ${offer1.bankColor}">${offer1.bankLogo}</div>
+                <div>
+                  <div class="text-white font-semibold">${offer1.bank}</div>
+                  <div class="text-gray-400 text-xs">${offer1.offerName}</div>
+                </div>
+              </div>
+            </th>
+            <th style="text-align: center; min-width: 200px;">
+              <div class="flex flex-col items-center gap-2 py-2">
+                <div class="bank-logo bank-logo-fallback" style="background: ${offer2.bankColor}">${offer2.bankLogo}</div>
+                <div>
+                  <div class="text-white font-semibold">${offer2.bank}</div>
+                  <div class="text-gray-400 text-xs">${offer2.offerName}</div>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      sections.forEach(section => {
+        html += `
+          <tr class="section-header">
+            <th colspan="3">${section.title}</th>
+          </tr>
+        `;
+
+        section.rows.forEach(row => {
+          const val1 = offer1[row.key1];
+          const val2 = offer2[row.key2];
+
+          let winner = 0;
+          if (row.compare) {
+            winner = compareValues(val1, val2, row.key1, row.lowerIsBetter);
+          }
+
+          const formatted1 = row.format ? row.format(val1) : formatValue(val1, row.key1);
+          const formatted2 = row.format ? row.format(val2) : formatValue(val2, row.key2);
+
+          html += `
+            <tr>
+              <th>${row.label}</th>
+              <td class="${winner === 1 ? 'winner' : ''}">
+                ${formatted1}
+                ${winner === 1 ? '<span class="winner-badge"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></span>' : ''}
+              </td>
+              <td class="${winner === 2 ? 'winner' : ''}">
+                ${formatted2}
+                ${winner === 2 ? '<span class="winner-badge"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></span>' : ''}
+              </td>
+            </tr>
+          `;
+        });
+      });
+
+      html += '</tbody>';
+      return html;
+    }
+
+    // Build mobile comparison view
+    function buildMobileComparison(offer1, offer2) {
+      const sections = [
+        {
+          title: 'Informations Générales',
+          rows: [
+            { label: 'Banque', key1: 'bank', key2: 'bank' },
+            { label: 'Offre', key1: 'offerName', key2: 'offerName' },
+            { label: 'Type', key1: 'offerType', key2: 'offerType', format: getOfferTypeBadge },
+            { label: 'Type de banque', key1: 'bankType', key2: 'bankType', format: (v) => v === 'online' ? 'Banque en ligne' : v === 'neo' ? 'Néobanque' : 'Banque traditionnelle' },
+            { label: 'Profil cible', key1: 'targetProfile', key2: 'targetProfile' }
+          ]
+        },
+        {
+          title: 'Tarification',
+          rows: [
+            { label: 'Frais mensuels', key1: 'monthlyFee', key2: 'monthlyFee', compare: true, lowerIsBetter: true },
+            { label: 'Condition frais', key1: 'monthlyFeeCondition', key2: 'monthlyFeeCondition' },
+            { label: 'Frais d\'inactivité', key1: 'inactivityFee', key2: 'inactivityFee', compare: true, lowerIsBetter: true },
+            { label: 'Revenus requis', key1: 'incomeRequired', key2: 'incomeRequired', compare: true, lowerIsBetter: true },
+            { label: 'Coût livraison', key1: 'deliveryCost', key2: 'deliveryCost' }
+          ]
+        },
+        {
+          title: 'Livraison',
+          rows: [
+            { label: 'Mode de livraison', key1: 'deliveryPackaging', key2: 'deliveryPackaging' }
+          ]
+        },
+        {
+          title: 'Carte Bancaire',
+          rows: [
+            { label: 'Type de carte', key1: 'cardType', key2: 'cardType' },
+            { label: 'Type de débit', key1: 'cardDebit', key2: 'cardDebit', format: (v) => v === 'immediate' ? 'Immédiat' : v === 'both' ? 'Imm./Diff.' : v },
+            { label: 'Débit différé', key1: 'cardDebitDiffere', key2: 'cardDebitDiffere', compare: true },
+            { label: 'Carte virtuelle', key1: 'virtualCard', key2: 'virtualCard', compare: true },
+            { label: 'IBAN', key1: 'iban', key2: 'iban' }
+          ]
+        },
+        {
+          title: 'Paiements & Retraits',
+          rows: [
+            { label: 'Paiements gratuits étranger', key1: 'paymentsFreeAbroad', key2: 'paymentsFreeAbroad', compare: true },
+            { label: 'Retraits gratuits étranger', key1: 'withdrawalsFreeAbroad', key2: 'withdrawalsFreeAbroad', compare: true },
+            { label: 'Retraits gratuits €', key1: 'freeWithdrawalsEuro', key2: 'freeWithdrawalsEuro' },
+            { label: 'Frais retrait suppl.', key1: 'withdrawalsExtraFee', key2: 'withdrawalsExtraFee' },
+            { label: 'Plafond paiement', key1: 'maxPaymentMonth', key2: 'maxPaymentMonth', compare: true },
+            { label: 'Plafond retrait', key1: 'maxWithdrawalWeek', key2: 'maxWithdrawalWeek', compare: true }
+          ]
+        },
+        {
+          title: 'Virements SWIFT',
+          rows: [
+            { label: 'Sortant', key1: 'swiftOutgoing', key2: 'swiftOutgoing', compare: true, lowerIsBetter: true },
+            { label: 'Entrant', key1: 'swiftIncoming', key2: 'swiftIncoming', compare: true, lowerIsBetter: true },
+            { label: 'Frais de change', key1: 'swiftForeignCurrencySurcharge', key2: 'swiftForeignCurrencySurcharge' }
+          ]
+        },
+        {
+          title: 'Assurances',
+          rows: [
+            { label: 'Assurance voyage', key1: 'insuranceTravel', key2: 'insuranceTravel', compare: true },
+            { label: 'Détails assurance', key1: 'insuranceTravelDetails', key2: 'insuranceTravelDetails' },
+            { label: 'Assurance paiement', key1: 'insuranceMeansPayment', key2: 'insuranceMeansPayment', compare: true },
+            { label: 'Accès salons', key1: 'loungeAccess', key2: 'loungeAccess', compare: true },
+            { label: 'Détails salons', key1: 'loungeAccessDetails', key2: 'loungeAccessDetails' }
+          ]
+        },
+        {
+          title: 'Avantages',
+          rows: [
+            { label: 'Cashback', key1: 'cashback', key2: 'cashback', compare: true },
+            { label: 'Taux cashback', key1: 'cashbackRate', key2: 'cashbackRate' },
+            { label: 'Découvert', key1: 'overdraftAvailable', key2: 'overdraftAvailable', compare: true },
+            { label: 'Max découvert', key1: 'overdraftMax', key2: 'overdraftMax', compare: true },
+            { label: 'Taux épargne', key1: 'savingsRate', key2: 'savingsRate' }
+          ]
+        }
+      ];
+
+      let html = `
+        <div class="mobile-header">
+          <div class="mobile-header-item">
+            <div class="bank-logo bank-logo-fallback" style="background: ${offer1.bankColor}">${offer1.bankLogo}</div>
+            <div class="mobile-header-info">
+              <div class="mobile-header-bank">${offer1.bank}</div>
+              <div class="mobile-header-offer">${offer1.offerName}</div>
+            </div>
+          </div>
+          <div class="mobile-header-item">
+            <div class="bank-logo bank-logo-fallback" style="background: ${offer2.bankColor}">${offer2.bankLogo}</div>
+            <div class="mobile-header-info">
+              <div class="mobile-header-bank">${offer2.bank}</div>
+              <div class="mobile-header-offer">${offer2.offerName}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      sections.forEach(section => {
+        html += `<div class="mobile-section">`;
+        html += `<div class="mobile-section-title">${section.title}</div>`;
+
+        section.rows.forEach(row => {
+          const val1 = offer1[row.key1];
+          const val2 = offer2[row.key2];
+
+          let winner = 0;
+          if (row.compare) {
+            winner = compareValues(val1, val2, row.key1, row.lowerIsBetter);
+          }
+
+          const formatted1 = row.format ? row.format(val1) : formatValue(val1, row.key1);
+          const formatted2 = row.format ? row.format(val2) : formatValue(val2, row.key2);
+
+          html += `
+            <div class="mobile-row">
+              <div class="mobile-row-label">${row.label}</div>
+              <div class="mobile-row-values">
+                <div class="mobile-value-box ${winner === 1 ? 'winner' : ''}">
+                  <div class="mobile-value-content">${formatted1}</div>
+                </div>
+                <div class="mobile-value-box ${winner === 2 ? 'winner' : ''}">
+                  <div class="mobile-value-content">${formatted2}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      });
+
+      return html;
+    }
+
+    // Update comparison
+    function updateComparison() {
+      const offer1Id = offer1Select.value;
+      const offer2Id = offer2Select.value;
+
+      if (!offer1Id || !offer2Id) {
+        emptyState.classList.remove('hidden');
+        summarySection.classList.add('hidden');
+        comparisonSection.classList.add('hidden');
+        offer1Preview.classList.add('hidden');
+        offer2Preview.classList.add('hidden');
+        return;
+      }
+
+      const offer1 = getOfferById(offer1Id);
+      const offer2 = getOfferById(offer2Id);
+
+      if (!offer1 || !offer2) return;
+
+      // Update previews
+      createPreview(offer1, offer1Preview);
+      createPreview(offer2, offer2Preview);
+
+      // Generate summary
+      const summary = generateSummary(offer1, offer2);
+      summaryContent.innerHTML = `
+        <div class="text-center p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+          <div class="text-3xl font-bold text-indigo-400">${summary.wins1}</div>
+          <div class="text-sm text-gray-400 mt-1">${offer1.bank} ${offer1.offerName}</div>
+          <div class="text-xs text-gray-500">avantages</div>
+        </div>
+        <div class="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+          <div class="text-3xl font-bold text-gray-400">${summary.ties}</div>
+          <div class="text-sm text-gray-400 mt-1">Égalité</div>
+          <div class="text-xs text-gray-500">critères</div>
+        </div>
+        <div class="text-center p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
+          <div class="text-3xl font-bold text-pink-400">${summary.wins2}</div>
+          <div class="text-sm text-gray-400 mt-1">${offer2.bank} ${offer2.offerName}</div>
+          <div class="text-xs text-gray-500">avantages</div>
+        </div>
+      `;
+
+      // Build comparison table (desktop)
+      compareTable.innerHTML = buildComparisonTable(offer1, offer2);
+
+      // Build mobile comparison view
+      mobileComparison.innerHTML = buildMobileComparison(offer1, offer2);
+
+      // Show sections
+      emptyState.classList.add('hidden');
+      summarySection.classList.remove('hidden');
+      comparisonSection.classList.remove('hidden');
+    }
+
+    // Event listeners
+    offer1Select.addEventListener('change', updateComparison);
+    offer2Select.addEventListener('change', updateComparison);
+
+    // Initialize
+    populateSelects();
+
+    // Check for URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const offer1Param = urlParams.get('offer1');
+    const offer2Param = urlParams.get('offer2');
+
+    if (offer1Param) {
+      offer1Select.value = offer1Param;
+    }
+    if (offer2Param) {
+      offer2Select.value = offer2Param;
+    }
+
+    if (offer1Param || offer2Param) {
+      updateComparison();
+    }
+
+    // Mobile menu functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIcon = mobileMenuButton.querySelector('svg');
+
+      let isMenuOpen = false;
+
+      mobileMenu.style.display = 'none';
+      mobileMenu.style.opacity = '0';
+      mobileMenu.style.transform = 'translateY(-8px)';
+
+      function closeMenu() {
+        requestAnimationFrame(() => {
+          mobileMenu.classList.remove('show');
+          document.body.classList.remove('menu-open');
+          isMenuOpen = false;
+
+          menuIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          `;
+
+          mobileMenu.style.opacity = '0';
+          mobileMenu.style.transform = 'translateY(-8px)';
+
+          setTimeout(() => {
+            if (!isMenuOpen) {
+              mobileMenu.style.display = 'none';
+              mobileMenu.style.opacity = '';
+              mobileMenu.style.transform = '';
+              document.body.classList.remove('menu-open');
+            }
+          }, 300);
+        });
+      }
+
+      window.addEventListener('beforeunload', () => {
+        if (isMenuOpen) {
+          document.body.classList.remove('menu-open');
+        }
+      });
+
+      mobileMenuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (!isMenuOpen) {
+          document.body.classList.remove('menu-open');
+
+          mobileMenu.style.cssText = 'display: block !important; pointer-events: auto !important;';
+          requestAnimationFrame(() => {
+            mobileMenu.classList.add('show');
+            document.body.classList.add('menu-open');
+            isMenuOpen = true;
+            menuIcon.innerHTML = `
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            `;
+          });
+        } else {
+          closeMenu();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (isMenuOpen && !mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+          closeMenu();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMenuOpen) {
+          closeMenu();
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768 && isMenuOpen) {
+          closeMenu();
+        }
+      });
+
+      mobileMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          closeMenu();
+        });
+      });
+
+      // Highlight current page
+      const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
