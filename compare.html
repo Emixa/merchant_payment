@@ -545,6 +545,21 @@
         Utilisez les menus déroulants ci-dessus pour choisir deux offres bancaires à comparer.
       </p>
     </div>
+
+    <!-- Pricing Links Section -->
+    <div id="pricingLinksSection" class="hidden mt-8 mb-12">
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Guides tarifaires officiels
+        </h3>
+        <div id="pricingLinksContent" class="grid md:grid-cols-2 gap-4">
+          <!-- Links will be populated by JS -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -671,6 +686,8 @@
     const compareTable = document.getElementById('compareTable');
     const mobileComparison = document.getElementById('mobileComparison');
     const emptyState = document.getElementById('emptyState');
+    const pricingLinksSection = document.getElementById('pricingLinksSection');
+    const pricingLinksContent = document.getElementById('pricingLinksContent');
 
     // Populate selects with offers grouped by bank
     function populateSelects() {
@@ -1099,6 +1116,7 @@
         emptyState.classList.remove('hidden');
         summarySection.classList.add('hidden');
         comparisonSection.classList.add('hidden');
+        pricingLinksSection.classList.add('hidden');
         offer1Preview.classList.add('hidden');
         offer2Preview.classList.add('hidden');
         return;
@@ -1143,6 +1161,51 @@
       emptyState.classList.add('hidden');
       summarySection.classList.remove('hidden');
       comparisonSection.classList.remove('hidden');
+
+      // Update pricing links section
+      const pricingLinks = [];
+      if (offer1.pricingUrl) {
+        pricingLinks.push({
+          bank: offer1.bank,
+          logo: offer1.bankLogo,
+          color: offer1.bankColor,
+          url: offer1.pricingUrl
+        });
+      }
+      if (offer2.pricingUrl && offer2.bank !== offer1.bank) {
+        pricingLinks.push({
+          bank: offer2.bank,
+          logo: offer2.bankLogo,
+          color: offer2.bankColor,
+          url: offer2.pricingUrl
+        });
+      } else if (offer2.pricingUrl && offer2.bank === offer1.bank && !pricingLinks.length) {
+        pricingLinks.push({
+          bank: offer2.bank,
+          logo: offer2.bankLogo,
+          color: offer2.bankColor,
+          url: offer2.pricingUrl
+        });
+      }
+
+      if (pricingLinks.length > 0) {
+        pricingLinksContent.innerHTML = pricingLinks.map(link => `
+          <a href="${link.url}" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group">
+            <div class="w-10 h-10 rounded-lg bank-logo-fallback flex items-center justify-center text-white font-bold text-sm" style="background: ${link.color}">${link.logo}</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-white group-hover:text-indigo-300 transition-colors">${link.bank}</div>
+              <div class="text-sm text-gray-500">Voir les tarifs officiels</div>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </a>
+        `).join('');
+        pricingLinksSection.classList.remove('hidden');
+      } else {
+        pricingLinksSection.classList.add('hidden');
+      }
     }
 
     // Event listeners
