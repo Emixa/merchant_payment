@@ -257,19 +257,131 @@
       border: 1px solid rgba(99, 102, 241, 0.2);
     }
 
+    /* Desktop table view */
+    .desktop-comparison {
+      display: block;
+    }
+
+    .mobile-comparison {
+      display: none;
+    }
+
     @media (max-width: 768px) {
-      .compare-table th {
-        width: 120px;
-        padding: 12px;
-        font-size: 12px;
+      .desktop-comparison {
+        display: none;
       }
-      .compare-table td {
-        padding: 12px;
-        font-size: 13px;
+
+      .mobile-comparison {
+        display: block;
       }
+
       .bank-logo {
         width: 40px;
         height: 40px;
+      }
+
+      .mobile-section {
+        margin-bottom: 16px;
+      }
+
+      .mobile-section-title {
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.15), transparent);
+        border-left: 3px solid #6366f1;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .mobile-row {
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .mobile-row-label {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .mobile-row-values {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .mobile-value-box {
+        background: rgba(15, 23, 42, 0.6);
+        border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .mobile-value-box.winner {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.2);
+      }
+
+      .mobile-value-bank {
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .mobile-value-content {
+        font-size: 14px;
+        color: #e2e8f0;
+        word-break: break-word;
+      }
+
+      .mobile-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(15,23,42,0.9));
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        position: sticky;
+        top: 64px;
+        z-index: 30;
+      }
+
+      .mobile-header-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
+      }
+
+      .mobile-header-item .bank-logo {
+        width: 48px;
+        height: 48px;
+      }
+
+      .mobile-header-bank {
+        font-weight: 600;
+        font-size: 14px;
+        color: #fff;
+      }
+
+      .mobile-header-offer {
+        font-size: 12px;
+        color: #94a3b8;
       }
     }
   </style>
@@ -386,12 +498,20 @@
 
     <!-- Comparison Table -->
     <div id="comparisonSection" class="hidden">
-      <div class="glass-card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="compare-table" id="compareTable">
-            <!-- Table will be populated by JS -->
-          </table>
+      <!-- Desktop View -->
+      <div class="desktop-comparison">
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="compare-table" id="compareTable">
+              <!-- Table will be populated by JS -->
+            </table>
+          </div>
         </div>
+      </div>
+
+      <!-- Mobile View -->
+      <div class="mobile-comparison" id="mobileComparison">
+        <!-- Mobile comparison will be populated by JS -->
       </div>
     </div>
 
@@ -464,6 +584,7 @@
     const summaryContent = document.getElementById('summaryContent');
     const comparisonSection = document.getElementById('comparisonSection');
     const compareTable = document.getElementById('compareTable');
+    const mobileComparison = document.getElementById('mobileComparison');
     const emptyState = document.getElementById('emptyState');
 
     // Populate selects with offers grouped by bank
@@ -748,6 +869,140 @@
       return html;
     }
 
+    // Build mobile comparison view
+    function buildMobileComparison(offer1, offer2) {
+      const sections = [
+        {
+          title: 'Informations Générales',
+          rows: [
+            { label: 'Banque', key1: 'bank', key2: 'bank' },
+            { label: 'Offre', key1: 'offerName', key2: 'offerName' },
+            { label: 'Type', key1: 'offerType', key2: 'offerType', format: getOfferTypeBadge },
+            { label: 'Type de banque', key1: 'bankType', key2: 'bankType', format: (v) => v === 'online' ? 'Banque en ligne' : v === 'neo' ? 'Néobanque' : 'Banque traditionnelle' },
+            { label: 'Profil cible', key1: 'targetProfile', key2: 'targetProfile' }
+          ]
+        },
+        {
+          title: 'Tarification',
+          rows: [
+            { label: 'Frais mensuels', key1: 'monthlyFee', key2: 'monthlyFee', compare: true, lowerIsBetter: true },
+            { label: 'Condition frais', key1: 'monthlyFeeCondition', key2: 'monthlyFeeCondition' },
+            { label: 'Frais d\'inactivité', key1: 'inactivityFee', key2: 'inactivityFee', compare: true, lowerIsBetter: true },
+            { label: 'Revenus requis', key1: 'incomeRequired', key2: 'incomeRequired', compare: true, lowerIsBetter: true },
+            { label: 'Coût livraison', key1: 'deliveryCost', key2: 'deliveryCost' }
+          ]
+        },
+        {
+          title: 'Livraison',
+          rows: [
+            { label: 'Mode de livraison', key1: 'deliveryPackaging', key2: 'deliveryPackaging' }
+          ]
+        },
+        {
+          title: 'Carte Bancaire',
+          rows: [
+            { label: 'Type de carte', key1: 'cardType', key2: 'cardType' },
+            { label: 'Type de débit', key1: 'cardDebit', key2: 'cardDebit', format: (v) => v === 'immediate' ? 'Immédiat' : v === 'both' ? 'Imm./Diff.' : v },
+            { label: 'Débit différé', key1: 'cardDebitDiffere', key2: 'cardDebitDiffere', compare: true },
+            { label: 'Carte virtuelle', key1: 'virtualCard', key2: 'virtualCard', compare: true },
+            { label: 'IBAN', key1: 'iban', key2: 'iban' }
+          ]
+        },
+        {
+          title: 'Paiements & Retraits',
+          rows: [
+            { label: 'Paiements gratuits étranger', key1: 'paymentsFreeAbroad', key2: 'paymentsFreeAbroad', compare: true },
+            { label: 'Retraits gratuits étranger', key1: 'withdrawalsFreeAbroad', key2: 'withdrawalsFreeAbroad', compare: true },
+            { label: 'Retraits gratuits €', key1: 'freeWithdrawalsEuro', key2: 'freeWithdrawalsEuro' },
+            { label: 'Frais retrait suppl.', key1: 'withdrawalsExtraFee', key2: 'withdrawalsExtraFee' },
+            { label: 'Plafond paiement', key1: 'maxPaymentMonth', key2: 'maxPaymentMonth', compare: true },
+            { label: 'Plafond retrait', key1: 'maxWithdrawalWeek', key2: 'maxWithdrawalWeek', compare: true }
+          ]
+        },
+        {
+          title: 'Virements SWIFT',
+          rows: [
+            { label: 'Sortant', key1: 'swiftOutgoing', key2: 'swiftOutgoing', compare: true, lowerIsBetter: true },
+            { label: 'Entrant', key1: 'swiftIncoming', key2: 'swiftIncoming', compare: true, lowerIsBetter: true },
+            { label: 'Frais de change', key1: 'swiftForeignCurrencySurcharge', key2: 'swiftForeignCurrencySurcharge' }
+          ]
+        },
+        {
+          title: 'Assurances',
+          rows: [
+            { label: 'Assurance voyage', key1: 'insuranceTravel', key2: 'insuranceTravel', compare: true },
+            { label: 'Détails assurance', key1: 'insuranceTravelDetails', key2: 'insuranceTravelDetails' },
+            { label: 'Assurance paiement', key1: 'insuranceMeansPayment', key2: 'insuranceMeansPayment', compare: true },
+            { label: 'Accès salons', key1: 'loungeAccess', key2: 'loungeAccess', compare: true },
+            { label: 'Détails salons', key1: 'loungeAccessDetails', key2: 'loungeAccessDetails' }
+          ]
+        },
+        {
+          title: 'Avantages',
+          rows: [
+            { label: 'Cashback', key1: 'cashback', key2: 'cashback', compare: true },
+            { label: 'Taux cashback', key1: 'cashbackRate', key2: 'cashbackRate' },
+            { label: 'Découvert', key1: 'overdraftAvailable', key2: 'overdraftAvailable', compare: true },
+            { label: 'Max découvert', key1: 'overdraftMax', key2: 'overdraftMax', compare: true },
+            { label: 'Taux épargne', key1: 'savingsRate', key2: 'savingsRate' }
+          ]
+        }
+      ];
+
+      let html = `
+        <div class="mobile-header">
+          <div class="mobile-header-item">
+            <div class="bank-logo bank-logo-fallback" style="background: ${offer1.bankColor}">${offer1.bankLogo}</div>
+            <div class="mobile-header-bank">${offer1.bank}</div>
+            <div class="mobile-header-offer">${offer1.offerName}</div>
+          </div>
+          <div class="mobile-header-item">
+            <div class="bank-logo bank-logo-fallback" style="background: ${offer2.bankColor}">${offer2.bankLogo}</div>
+            <div class="mobile-header-bank">${offer2.bank}</div>
+            <div class="mobile-header-offer">${offer2.offerName}</div>
+          </div>
+        </div>
+      `;
+
+      sections.forEach(section => {
+        html += `<div class="mobile-section">`;
+        html += `<div class="mobile-section-title">${section.title}</div>`;
+
+        section.rows.forEach(row => {
+          const val1 = offer1[row.key1];
+          const val2 = offer2[row.key2];
+
+          let winner = 0;
+          if (row.compare) {
+            winner = compareValues(val1, val2, row.key1, row.lowerIsBetter);
+          }
+
+          const formatted1 = row.format ? row.format(val1) : formatValue(val1, row.key1);
+          const formatted2 = row.format ? row.format(val2) : formatValue(val2, row.key2);
+
+          html += `
+            <div class="mobile-row">
+              <div class="mobile-row-label">${row.label}</div>
+              <div class="mobile-row-values">
+                <div class="mobile-value-box ${winner === 1 ? 'winner' : ''}">
+                  <div class="mobile-value-bank">${offer1.bankLogo}</div>
+                  <div class="mobile-value-content">${formatted1}</div>
+                </div>
+                <div class="mobile-value-box ${winner === 2 ? 'winner' : ''}">
+                  <div class="mobile-value-bank">${offer2.bankLogo}</div>
+                  <div class="mobile-value-content">${formatted2}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      });
+
+      return html;
+    }
+
     // Update comparison
     function updateComparison() {
       const offer1Id = offer1Select.value;
@@ -791,8 +1046,11 @@
         </div>
       `;
 
-      // Build comparison table
+      // Build comparison table (desktop)
       compareTable.innerHTML = buildComparisonTable(offer1, offer2);
+
+      // Build mobile comparison view
+      mobileComparison.innerHTML = buildMobileComparison(offer1, offer2);
 
       // Show sections
       emptyState.classList.add('hidden');
