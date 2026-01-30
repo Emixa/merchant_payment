@@ -298,50 +298,51 @@
       }
 
       .mobile-row {
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .mobile-row:last-child {
+        border-bottom: none;
       }
 
       .mobile-row-label {
-        font-size: 12px;
+        flex: 0 0 35%;
+        font-size: 13px;
         color: #94a3b8;
-        font-weight: 600;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
+        padding-right: 10px;
       }
 
       .mobile-row-values {
+        flex: 1;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 8px;
       }
 
       .mobile-value-box {
-        background: rgba(15, 23, 42, 0.6);
-        border-radius: 10px;
-        padding: 12px;
+        padding: 8px;
         text-align: center;
-        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.03);
+      }
+
+      .mobile-value-box:first-child {
+        border-left: 2px solid rgba(99, 102, 241, 0.4);
+      }
+
+      .mobile-value-box:last-child {
+        border-left: 2px solid rgba(236, 72, 153, 0.4);
       }
 
       .mobile-value-box.winner {
-        background: rgba(16, 185, 129, 0.1);
-        border-color: rgba(16, 185, 129, 0.2);
-      }
-
-      .mobile-value-bank {
-        font-size: 11px;
-        color: #64748b;
-        margin-bottom: 6px;
-        font-weight: 600;
+        background: rgba(16, 185, 129, 0.12);
       }
 
       .mobile-value-content {
-        font-size: 14px;
+        font-size: 13px;
         color: #e2e8f0;
         word-break: break-word;
       }
@@ -349,38 +350,55 @@
       .mobile-header {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 20px;
-        padding: 16px;
-        background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(15,23,42,0.9));
-        border-radius: 16px;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 14px;
+        background: rgba(15,23,42,0.95);
+        border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.08);
         position: sticky;
         top: 64px;
         z-index: 30;
+        backdrop-filter: blur(10px);
       }
 
       .mobile-header-item {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        text-align: center;
+        gap: 10px;
+      }
+
+      .mobile-header-item:first-child {
+        border-left: 3px solid #6366f1;
+        padding-left: 10px;
+      }
+
+      .mobile-header-item:last-child {
+        border-left: 3px solid #ec4899;
+        padding-left: 10px;
       }
 
       .mobile-header-item .bank-logo {
-        width: 48px;
-        height: 48px;
+        width: 36px;
+        height: 36px;
+        font-size: 11px;
+      }
+
+      .mobile-header-info {
+        min-width: 0;
       }
 
       .mobile-header-bank {
         font-weight: 600;
-        font-size: 14px;
+        font-size: 13px;
         color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .mobile-header-offer {
-        font-size: 12px;
+        font-size: 11px;
         color: #94a3b8;
       }
     }
@@ -953,13 +971,17 @@
         <div class="mobile-header">
           <div class="mobile-header-item">
             <div class="bank-logo bank-logo-fallback" style="background: ${offer1.bankColor}">${offer1.bankLogo}</div>
-            <div class="mobile-header-bank">${offer1.bank}</div>
-            <div class="mobile-header-offer">${offer1.offerName}</div>
+            <div class="mobile-header-info">
+              <div class="mobile-header-bank">${offer1.bank}</div>
+              <div class="mobile-header-offer">${offer1.offerName}</div>
+            </div>
           </div>
           <div class="mobile-header-item">
             <div class="bank-logo bank-logo-fallback" style="background: ${offer2.bankColor}">${offer2.bankLogo}</div>
-            <div class="mobile-header-bank">${offer2.bank}</div>
-            <div class="mobile-header-offer">${offer2.offerName}</div>
+            <div class="mobile-header-info">
+              <div class="mobile-header-bank">${offer2.bank}</div>
+              <div class="mobile-header-offer">${offer2.offerName}</div>
+            </div>
           </div>
         </div>
       `;
@@ -985,11 +1007,9 @@
               <div class="mobile-row-label">${row.label}</div>
               <div class="mobile-row-values">
                 <div class="mobile-value-box ${winner === 1 ? 'winner' : ''}">
-                  <div class="mobile-value-bank">${offer1.bankLogo}</div>
                   <div class="mobile-value-content">${formatted1}</div>
                 </div>
                 <div class="mobile-value-box ${winner === 2 ? 'winner' : ''}">
-                  <div class="mobile-value-bank">${offer2.bankLogo}</div>
                   <div class="mobile-value-content">${formatted2}</div>
                 </div>
               </div>
