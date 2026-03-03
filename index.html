@@ -460,7 +460,7 @@
             </button>
             <button class="network-pill" data-tab="national" id="pill-national">
                 <span class="pill-dot" style="background: linear-gradient(135deg, #1A5276, #E30613, #54B848);"></span>
-                <i class="fas fa-flag"></i> National Schemes
+                <i class="fas fa-credit-card"></i> Card Schemes
             </button>
         </div>
 
@@ -564,23 +564,17 @@
         };
 
         const nationalSchemes = {
-            cb:         { name: 'Cartes Bancaires', color: '#1A5276', logo: 'assets/cb_logo.png', countries: ['FRA'] },
-            girocard:   { name: 'Girocard',         color: '#E74C3C', logo: 'assets/girocard_logo.png', countries: ['DEU'] },
-            bancontact: { name: 'Bancontact',       color: '#005498', logo: 'assets/bancomat_logo.png', countries: ['BEL'] },
-            ideal:      { name: 'iDEAL',            color: '#CC0066', countries: ['NLD'] },
-            bizum:      { name: 'Bizum',            color: '#00C1A0', users: '28.8M', countries: ['ESP'] },
-            multibanco: { name: 'Multibanco',       color: '#E4002B', countries: ['PRT'] },
-            bancomat:   { name: 'PagoBANCOMAT',     color: '#003DA5', countries: ['ITA'] },
-            dankort:    { name: 'Dankort',           color: '#ED1C24', logo: 'assets/dankort_logo.png', countries: ['DNK'] },
-            swish:      { name: 'Swish',            color: '#54B848', users: '8.5M', countries: ['SWE'] },
-            bankaxept:  { name: 'BankAxept',        color: '#FF6600', logo: 'assets/bankaxept_logo.png', countries: ['NOR'] },
-            mobilepay:  { name: 'MobilePay',        color: '#5A31F4', countries: ['FIN'] },
-            blik:       { name: 'BLIK',             color: '#E30613', users: '18.5M', countries: ['POL'] },
-            iris:       { name: 'IRIS',             color: '#1B3C87', countries: ['GRC'] },
-            twint:      { name: 'TWINT',            color: '#000000', countries: ['CHE'] },
-            dinacard:   { name: 'DinaCard',         color: '#B22222', countries: ['SRB'] },
-            borica:     { name: 'BORICA',           color: '#2E7D32', countries: ['BGR'] },
-            faster:     { name: 'Faster Payments',  color: '#7B1FA2', countries: ['GBR'] }
+            cb:          { name: 'Cartes Bancaires',  color: '#1A5276', logo: 'assets/cb_logo.png',       countries: ['FRA'], cards: '~70M' },
+            girocard:    { name: 'Girocard',          color: '#E74C3C', logo: 'assets/girocard_logo.png',  countries: ['DEU'], cards: '~100M' },
+            bancontact:  { name: 'Bancontact',        color: '#005498', logo: 'assets/bancomat_logo.png',  countries: ['BEL'] },
+            dankort:     { name: 'Dankort',           color: '#ED1C24', logo: 'assets/dankort_logo.png',   countries: ['DNK'], cards: '~5M' },
+            bankaxept:   { name: 'BankAxept',         color: '#FF6600', logo: 'assets/bankaxept_logo.png', countries: ['NOR'] },
+            bancomat:    { name: 'PagoBANCOMAT',      color: '#003DA5',                                    countries: ['ITA'] },
+            multibanco:  { name: 'Multibanco',        color: '#E4002B',                                    countries: ['PRT'] },
+            stmp:        { name: 'STMP (Redsys)',     color: '#F5A623',                                    countries: ['ESP'] },
+            bcard:       { name: 'Bcard',             color: '#2E7D32',                                    countries: ['BGR'] },
+            dinacard:    { name: 'DinaCard',          color: '#B22222',                                    countries: ['SRB'] },
+            postfinance: { name: 'PostFinance Card',  color: '#FFCC00',                                    countries: ['CHE'] }
         };
 
         // Build reverse lookup: country code → scheme key
@@ -610,7 +604,8 @@
         Object.entries(nationalSchemes).forEach(([key, s]) => {
             const chip = document.createElement('div');
             chip.className = 'scheme-chip';
-            chip.innerHTML = `<div class="chip-dot" style="background: ${s.color};"></div>${s.name}${s.users ? ' <span style="color:rgba(255,255,255,0.4);font-size:11px;">' + s.users + '</span>' : ''}`;
+            const chipCount = s.cards || s.users;
+            chip.innerHTML = `<div class="chip-dot" style="background: ${s.color};"></div>${s.name}${chipCount ? ' <span style="color:rgba(255,255,255,0.4);font-size:11px;">' + chipCount + '</span>' : ''}`;
             chip.addEventListener('click', () => {
                 if (currentTab !== 'national') return;
                 const cc = s.countries[0];
@@ -644,7 +639,7 @@
             if (currentTab === 'instant') {
                 infoBar.innerHTML = `<i class="fas fa-bolt" style="color: #0072DE;"></i> WERO <span>50M+</span> users &middot; EuroPA <span>130M+</span> users &middot; Cross-border instant payments`;
             } else {
-                infoBar.innerHTML = `<i class="fas fa-flag" style="color: #E6007E;"></i> <span>17</span> domestic payment schemes across Europe`;
+                infoBar.innerHTML = `<i class="fas fa-credit-card" style="color: #E6007E;"></i> <span>11</span> domestic card schemes across Europe`;
             }
         }
 
@@ -801,7 +796,7 @@
                 <div class="popup-badge" style="background: ${scheme.color};">
                     <i class="fas fa-credit-card"></i> ${scheme.name}
                 </div>
-                ${scheme.users ? `<div class="popup-users"><i class="fas fa-users"></i>${scheme.users} users</div>` : ''}
+                ${scheme.cards ? `<div class="popup-users"><i class="fas fa-credit-card"></i>${scheme.cards} cards</div>` : ''}
             `;
         }
 
