@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copenhagen Payment & Fintech Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1E1B4B, #2E1065);
+            color: #E5E7EB;
+            min-height: 100vh;
+            padding-top: 64px;
+        }
+
+        /* Google Maps embed */
+        .gmap-container {
+            position: relative;
+            width: 100%;
+            max-width: min(95vw, 1100px);
+            background: rgba(30, 27, 75, 0.8);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            height: 60vh;
+        }
+
+        .gmap-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        @media (max-width: 768px) {
+            .gmap-container {
+                max-width: 100vw;
+                border-radius: 0;
+                height: 45vh;
+                border-left: none;
+                border-right: none;
+            }
+        }
+
+        /* Network Switcher / Filter pills */
+        .network-switcher {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 0 16px;
+            flex-wrap: wrap;
+        }
+
+        .network-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 9999px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ccc;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 44px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            white-space: nowrap;
+        }
+
+        .network-pill:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .network-pill.active {
+            color: #fff;
+            border-color: currentColor;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .network-pill .pill-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Company cards */
+        .company-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px 18px;
+            transition: all 0.2s;
+        }
+
+        .company-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .company-card .card-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .company-card .card-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 6px;
+        }
+
+        .company-card .card-address {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .company-card .card-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.65);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .company-card .card-links {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .card-link.maps-link {
+            color: #4ade80;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .card-link.maps-link:hover {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .card-link.web-link {
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .card-link.web-link:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Legend */
+        .legend-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            justify-content: center;
+            padding: 8px 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Info bar */
+        .info-bar {
+            text-align: center;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            min-height: 32px;
+        }
+        .info-bar span {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+        }
+
+        /* Navigation styles */
+        .nav-link {
+            background-color: rgba(75, 85, 99, 0.5);
+            min-width: fit-content;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(75, 85, 99, 0.7);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #6366F1, #EC4899);
+        }
+
+        .nav-link.active:hover {
+            background: linear-gradient(135deg, #5558E3, #DB3A88);
+        }
+
+        #mobile-menu {
+            transition: all 0.3s ease;
+        }
+
+        #mobile-menu.show {
+            display: block !important;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Counter badge */
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1a2634] border-b border-gray-800" style="backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text" style="background-clip: text; -webkit-background-clip: text;">Payment Infos</h1>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex space-x-4">
+                    <a href="index.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        European Map
+                    </a>
+                    <a href="european_banks.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        European Banks
+                    </a>
+                    <a href="merchant_fees.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Merchant Fees
+                    </a>
+                    <a href="bank_offers.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Bank Offers
+                    </a>
+                    <a href="compare.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Comparateur
+                    </a>
+                    <a href="copenhagen.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Copenhagen
+                    </a>
+                </div>
+
+                <!-- Mobile Navigation Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-300 hover:text-white p-2 rounded-lg transition-colors">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 absolute w-full bg-[#1a2634] shadow-lg">
+            <div class="px-2 pt-2 pb-3 space-y-2">
+                <a href="index.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    European Map
+                </a>
+                <a href="european_banks.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    European Banks
+                </a>
+                <a href="merchant_fees.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Merchant Fees
+                </a>
+                <a href="bank_offers.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Bank Offers
+                </a>
+                <a href="compare.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Comparateur
+                </a>
+                <a href="copenhagen.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Copenhagen
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="w-full flex flex-col items-center mt-3 md:mt-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-center mb-2 bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent" style="background-clip: text; -webkit-background-clip: text;">Copenhagen Payment & Fintech</h1>
+        <p class="text-sm text-center text-gray-400 mb-4 px-4">Paiements, banques, monétique, PSP & réseaux cartes au Danemark</p>
+
+        <!-- Google Maps Embed -->
+        <div class="gmap-container" id="gmap-container">
+            <iframe
+                id="gmap-iframe"
+                src="https://www.google.com/maps/d/embed?mid=1_copenhagen_payment_fintech&z=12&ll=55.6761,12.5683"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen>
+            </iframe>
+        </div>
+
+        <div class="info-bar mt-2" id="info-bar">
+            Cliquez sur une entreprise pour voir sa localisation sur Google Maps
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="network-switcher mb-3 mt-2">
+            <button class="network-pill active" data-category="all">
+                <span class="pill-dot" style="background: linear-gradient(135deg, #6366F1, #EC4899);"></span>
+                Tous <span class="count-badge" id="count-all"></span>
+            </button>
+            <button class="network-pill" data-category="card-network" style="--pill-color: #f59e0b;">
+                <span class="pill-dot" style="background: #f59e0b;"></span>
+                Réseaux Cartes <span class="count-badge" id="count-card-network"></span>
+            </button>
+            <button class="network-pill" data-category="processor" style="--pill-color: #ef4444;">
+                <span class="pill-dot" style="background: #ef4444;"></span>
+                Processeurs <span class="count-badge" id="count-processor"></span>
+            </button>
+            <button class="network-pill" data-category="psp" style="--pill-color: #8b5cf6;">
+                <span class="pill-dot" style="background: #8b5cf6;"></span>
+                PSP / Gateway <span class="count-badge" id="count-psp"></span>
+            </button>
+            <button class="network-pill" data-category="fintech" style="--pill-color: #06b6d4;">
+                <span class="pill-dot" style="background: #06b6d4;"></span>
+                Fintech <span class="count-badge" id="count-fintech"></span>
+            </button>
+            <button class="network-pill" data-category="bank" style="--pill-color: #22c55e;">
+                <span class="pill-dot" style="background: #22c55e;"></span>
+                Banques <span class="count-badge" id="count-bank"></span>
+            </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend-container">
+            <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Réseaux Cartes</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>Processeurs / Acquéreurs</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #8b5cf6;"></div>PSP / Gateway</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #06b6d4;"></div>Fintech</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #22c55e;"></div>Banques</div>
+        </div>
+
+        <!-- Company List -->
+        <div class="w-full max-w-6xl mx-auto px-4 mt-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="company-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const companies = [
+            {
+                name: "Mastercard",
+                category: "card-network",
+                color: "#f59e0b",
+                address: "Lyngby Hovedgade 2, 2800 Kongens Lyngby, Denmark",
+                mapsQuery: "Mastercard+Lyngby+Hovedgade+2+Kongens+Lyngby+Denmark",
+                description: "Réseau carte mondial. A acquis Nets Corporate Services & Aiia (open banking). Bureau de Copenhague en forte croissance (centaines d'employés). Programme Mastercard Lighthouse pour les fintechs nordiques.",
+                website: "https://www.mastercard.dk",
+                type: "Réseau Carte"
+            },
+            {
+                name: "Visa (via Dankort)",
+                category: "card-network",
+                color: "#f59e0b",
+                address: "Lautrupbjerg 10, 2750 Ballerup, Denmark",
+                mapsQuery: "Lautrupbjerg+10+Ballerup+Denmark",
+                description: "Réseau carte mondial. Présent au Danemark via le co-branding Dankort/Visa. Quasiment chaque Danois possède une carte Visa/Dankort.",
+                website: "https://www.visa.dk",
+                type: "Réseau Carte"
+            },
+            {
+                name: "Nets / Nexi Group",
+                category: "processor",
+                color: "#ef4444",
+                address: "Klausdalsbrovej 601, 2750 Ballerup, Denmark",
+                mapsQuery: "Nets+Klausdalsbrovej+601+Ballerup+Denmark",
+                description: "Plus grand processeur de paiements nordique. Fait partie du groupe Nexi (acquis pour 7,8 Mds€). Opère le réseau national Dankort. Traite des milliards de transactions par an. Employeur majeur dans le paiement danois.",
+                website: "https://www.nets.eu",
+                type: "Processeur / Acquéreur"
+            },
+            {
+                name: "Worldline / Bambora",
+                category: "processor",
+                color: "#ef4444",
+                address: "Copenhagen, Denmark",
+                mapsQuery: "Worldline+Copenhagen+Denmark",
+                description: "2e plus grand processeur de paiements européen. Bambora (PSP nordique) acquis via Ingenico. Acquiring marchand, terminaux POS et solutions e-commerce dans les pays nordiques.",
+                website: "https://worldline.com",
+                type: "Processeur"
+            },
+            {
+                name: "AltaPay / Market Pay",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Gyngemose Parkvej 50, 2860 Søborg, Denmark",
+                mapsQuery: "AltaPay+Gyngemose+Parkvej+50+Søborg+Denmark",
+                description: "PSP omnicanal acquis par Market Pay (fév. 2025). Plateforme unique pour les paiements en ligne, en magasin et mobiles. 3,1 Mds€ de transactions au Danemark en 2023.",
+                website: "https://altapay.com",
+                type: "PSP / Gateway"
+            },
+            {
+                name: "Clearhaus",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Dalgas Avenue 46, 8000 Aarhus C, Denmark",
+                mapsQuery: "Clearhaus+Dalgas+Avenue+46+Aarhus+Denmark",
+                description: "Établissement de paiement agréé, membre principal Visa et Mastercard. Acquéreur marchand pour le e-commerce. Solutions de paiement innovantes. Basé à Aarhus.",
+                website: "https://www.clearhaus.com",
+                type: "PSP / Acquéreur"
+            },
+            {
+                name: "QuickPay",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Toldbodgade 3, 9000 Aalborg, Denmark",
+                mapsQuery: "QuickPay+Toldbodgade+3+Aalborg+Denmark",
+                description: "Passerelle de paiement danoise utilisée par ~4 800 boutiques en ligne. Supporte cartes, MobilePay, Viabill, Apple Pay. Populaire auprès des PME. Basé à Aalborg.",
+                website: "https://quickpay.net",
+                type: "Gateway"
+            },
+            {
+                name: "OnPay",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Åboulevarden 25, 8000 Aarhus C, Denmark",
+                mapsQuery: "OnPay+Åboulevarden+25+Aarhus+Denmark",
+                description: "Passerelle de paiement danoise. Supporte Dankort, Visa, Mastercard, MobilePay, Apple Pay, Google Pay. Tarification transparente.",
+                website: "https://onpay.io",
+                type: "Gateway"
+            },
+            {
+                name: "Pleo",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Ravnsborg Tværgade 5C, 2200 København N, Denmark",
+                mapsQuery: "Pleo+Ravnsborg+Tværgade+5C+København+Denmark",
+                description: "Licorne fintech (valorisée >1 Md$). Cartes d'entreprise intelligentes et gestion des dépenses pour 20 000+ entreprises. Fondée en 2015. Bureaux à Londres, Berlin, Stockholm, Madrid.",
+                website: "https://www.pleo.io",
+                type: "Fintech / Gestion des dépenses"
+            },
+            {
+                name: "Lunar",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Bredgade 43, 1260 København K, Denmark",
+                mapsQuery: "Lunar+Bredgade+43+København+Denmark",
+                description: "Banque digitale nordique avec 400+ employés. Banque mobile-first pour les particuliers et les entreprises. Notifications en temps réel, outils de budget, trading crypto. Banque agréée.",
+                website: "https://www.lunar.app",
+                type: "Néobanque"
+            },
+            {
+                name: "Cardlay",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Langebrogade 4, 1411 København K, Denmark",
+                mapsQuery: "Cardlay+Langebrogade+4+København+Denmark",
+                description: "Plateforme white-label de gestion des dépenses pour banques et fintechs. Fondée en 2016. Gestion de cartes d'entreprise et suivi des dépenses. Bureaux à Copenhague et Odense.",
+                website: "https://cardlay.com",
+                type: "Fintech / Spend Management"
+            },
+            {
+                name: "Vipps MobilePay",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Vesterbrogade 5, 1502 København V, Denmark",
+                mapsQuery: "MobilePay+Vesterbrogade+København+Denmark",
+                description: "Solution de paiement mobile dominante dans les pays nordiques (70% des transactions mobiles). Fusion de MobilePay (DK) et Vipps (NO). P2P, en magasin, e-commerce.",
+                website: "https://www.mobilepay.dk",
+                type: "Paiement Mobile"
+            },
+            {
+                name: "Copenhagen Fintech",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Applebys Plads 7, 1411 København K, Denmark",
+                mapsQuery: "Copenhagen+Fintech+Applebys+Plads+København+Denmark",
+                description: "Hub d'innovation primé, fondé en 2016. Partenariat avec Finansforbundet, l'Université de Copenhague, la Ville de Copenhague. Gère le Fintech Lab, accueille la Nordic Fintech Week.",
+                website: "https://copenhagenfintech.dk",
+                type: "Hub Fintech / Accélérateur"
+            },
+            {
+                name: "Danske Bank",
+                category: "bank",
+                color: "#22c55e",
+                address: "Holmens Kanal 2-12, 1092 København K, Denmark",
+                mapsQuery: "Danske+Bank+Holmens+Kanal+København+Denmark",
+                description: "Plus grande banque du Danemark. Services complets : processing paiement, services marchands, émission de cartes. Employeur majeur du secteur financier danois.",
+                website: "https://danskebank.dk",
+                type: "Banque"
+            },
+            {
+                name: "Nordea",
+                category: "bank",
+                color: "#22c55e",
+                address: "Strandgade 3, 1401 København K, Denmark",
+                mapsQuery: "Nordea+Strandgade+3+København+Denmark",
+                description: "Plus grand groupe financier nordique. Banque retail et corporate, services de paiement, émission de cartes. Présence majeure au Danemark avec capacités d'acquiring.",
+                website: "https://www.nordea.dk",
+                type: "Banque"
+            },
+            {
+                name: "Saxo Bank",
+                category: "bank",
+                color: "#22c55e",
+                address: "Philip Heymans Allé 15, 2900 Hellerup, Denmark",
+                mapsQuery: "Saxo+Bank+Philip+Heymans+Allé+15+Hellerup+Denmark",
+                description: "Banque d'investissement danoise spécialisée dans le trading en ligne. Plateforme multi-actifs. Fondée en 1992. Opérations mondiales depuis le siège de Copenhague.",
+                website: "https://www.home.saxo",
+                type: "Banque d'investissement"
+            },
+            {
+                name: "Jyske Bank",
+                category: "bank",
+                color: "#22c55e",
+                address: "Vestergade 8-16, 8600 Silkeborg, Denmark",
+                mapsQuery: "Jyske+Bank+Copenhagen+Denmark",
+                description: "3e plus grande banque du Danemark. Banque retail et corporate, services de paiement. Siège à Silkeborg avec une présence significative à Copenhague.",
+                website: "https://www.jyskebank.dk",
+                type: "Banque"
+            },
+            {
+                name: "Softpay",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Njalsgade 76, 2300 København S, Denmark",
+                mapsQuery: "Softpay+Njalsgade+76+København+Denmark",
+                description: "Fintech danoise transformant les smartphones Android en terminaux de paiement (SoftPOS / Tap to Pay). Permet aux commerçants d'accepter les paiements par carte sans matériel dédié.",
+                website: "https://softpay.io",
+                type: "Fintech / SoftPOS"
+            },
+            {
+                name: "Inpay",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Toldbodgade 55B, 1253 København K, Denmark",
+                mapsQuery: "Inpay+Toldbodgade+55B+København+Denmark",
+                description: "Fournisseur de paiements transfrontaliers avec licence EMI. Spécialisé dans les payouts marketplace et les virements internationaux. Règlement rapide dans 60+ pays.",
+                website: "https://www.inpay.com",
+                type: "Paiement Transfrontalier"
+            },
+            {
+                name: "November First",
+                category: "fintech",
+                color: "#06b6d4",
+                address: "Sankt Annæ Plads 13, 1250 København K, Denmark",
+                mapsQuery: "November+First+Sankt+Annæ+Plads+København+Denmark",
+                description: "Plateforme de paiement offrant des taux de change en temps réel. Simplifie les paiements domestiques et internationaux pour les entreprises.",
+                website: "https://novemberfirst.com",
+                type: "Fintech / Paiements"
+            },
+            {
+                name: "Gate2Payments",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Copenhagen, Denmark",
+                mapsQuery: "Gate2Payments+Copenhagen+Denmark",
+                description: "Solutions de paiement en ligne mondiales pour le e-commerce. Processing carte, intégration gateway, services de comptes marchands. Spécialisé dans les marchands à haut risque.",
+                website: "https://gate2payments.com",
+                type: "PSP / Gateway"
+            },
+            {
+                name: "Pensopay",
+                category: "psp",
+                color: "#8b5cf6",
+                address: "Copenhagen, Denmark",
+                mapsQuery: "Pensopay+Copenhagen+Denmark",
+                description: "Passerelle de paiement danoise pour les boutiques en ligne. Fondée par des co-fondateurs de QuickPay. Solution de paiement simple et abordable pour le e-commerce danois.",
+                website: "https://pensopay.com",
+                type: "Gateway"
+            }
+        ];
+
+        // Google Maps URL builder
+        function getGoogleMapsUrl(company) {
+            return 'https://www.google.com/maps/search/' + encodeURIComponent(company.mapsQuery);
+        }
+
+        function getGoogleMapsEmbedUrl(company) {
+            return 'https://www.google.com/maps?q=' + encodeURIComponent(company.mapsQuery) + '&output=embed&z=15';
+        }
+
+        // Update counts
+        const categories = ['card-network', 'processor', 'psp', 'fintech', 'bank'];
+        document.getElementById('count-all').textContent = companies.length;
+        categories.forEach(cat => {
+            document.getElementById('count-' + cat).textContent = companies.filter(c => c.category === cat).length;
+        });
+
+        // Set initial Google Maps iframe to Copenhagen overview
+        const gmapIframe = document.getElementById('gmap-iframe');
+        gmapIframe.src = 'https://www.google.com/maps?q=Copenhagen+Fintech+payment+companies&ll=55.6761,12.5683&z=12&output=embed';
+
+        // Show company on map
+        function showOnMap(company) {
+            gmapIframe.src = getGoogleMapsEmbedUrl(company);
+            document.getElementById('info-bar').innerHTML = '<span>' + company.name + '</span> &mdash; ' + company.address;
+            document.getElementById('gmap-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Populate company grid
+        const companyGrid = document.getElementById('company-grid');
+        companies.forEach((company, index) => {
+            const card = document.createElement('div');
+            card.className = 'company-card';
+            card.dataset.category = company.category;
+            card.dataset.index = index;
+            card.innerHTML =
+                '<div class="flex items-center gap-2">' +
+                    '<div class="legend-dot" style="background: ' + company.color + ';"></div>' +
+                    '<span class="card-name">' + company.name + '</span>' +
+                '</div>' +
+                '<div class="card-type-badge" style="background: ' + company.color + '20; color: ' + company.color + '; border: 1px solid ' + company.color + '40;">' +
+                    '<i class="fas fa-circle" style="font-size: 5px;"></i> ' + company.type +
+                '</div>' +
+                '<div class="card-address"><i class="fas fa-map-marker-alt" style="font-size: 11px; margin-right: 4px; opacity: 0.6;"></i>' + company.address + '</div>' +
+                '<div class="card-desc">' + company.description + '</div>' +
+                '<div class="card-links">' +
+                    '<a href="' + getGoogleMapsUrl(company) + '" target="_blank" rel="noopener" class="card-link maps-link" title="Ouvrir dans Google Maps">' +
+                        '<i class="fas fa-map-marked-alt"></i> Google Maps' +
+                    '</a>' +
+                    '<button class="card-link maps-link" onclick="showOnMap(companies[' + index + '])" title="Voir sur la carte">' +
+                        '<i class="fas fa-crosshairs"></i> Voir sur la carte' +
+                    '</button>' +
+                    '<a href="' + company.website + '" target="_blank" rel="noopener" class="card-link web-link">' +
+                        '<i class="fas fa-external-link-alt"></i> Site web' +
+                    '</a>' +
+                '</div>';
+            companyGrid.appendChild(card);
+        });
+
+        // Category filter
+        let currentCategory = 'all';
+        document.querySelectorAll('.network-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.network-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                currentCategory = pill.dataset.category;
+
+                document.querySelectorAll('.company-card').forEach(card => {
+                    if (currentCategory === 'all' || card.dataset.category === currentCategory) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                const count = currentCategory === 'all' ? companies.length : companies.filter(c => c.category === currentCategory).length;
+                const label = pill.textContent.replace(/\d+/g, '').trim();
+                document.getElementById('info-bar').innerHTML = '<span>' + count + '</span> entreprises' + (currentCategory !== 'all' ? ' dans <span>' + label + '</span>' : ' au total');
+            });
+        });
+
+        // Mobile menu
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = mobileMenuButton.querySelector('svg');
+            let isMenuOpen = false;
+
+            function closeMenu() {
+                mobileMenu.classList.remove('show');
+                mobileMenu.style.cssText = '';
+                document.body.classList.remove('menu-open');
+                isMenuOpen = false;
+                menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+            }
+
+            mobileMenuButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!isMenuOpen) {
+                    document.body.classList.remove('menu-open');
+                    mobileMenu.style.cssText = 'display: block !important; pointer-events: auto !important;';
+                    requestAnimationFrame(() => {
+                        mobileMenu.classList.add('show');
+                        document.body.classList.add('menu-open');
+                        isMenuOpen = true;
+                        menuIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+                    });
+                } else {
+                    closeMenu();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (isMenuOpen && !mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) closeMenu();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isMenuOpen) closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && isMenuOpen) closeMenu();
+            });
+
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => closeMenu());
+            });
+
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('href') === currentPage) link.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
