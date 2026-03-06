@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>European Banks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1E1B4B, #2E1065);
+            color: #E5E7EB;
+            min-height: 100vh;
+            padding-top: 64px;
+        }
+
+        /* Nav active style */
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+        }
+        .nav-link:hover:not(.active) {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        /* Mobile menu animation */
+        #mobile-menu {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #mobile-menu.show {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* Map container */
+        .map-container {
+            position: relative;
+            width: 100%;
+            background: rgba(30, 27, 75, 0.8);
+            border-radius: 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            cursor: grab;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            height: 65vh;
+            min-height: 400px;
+        }
+
+        .map-container object {
+            display: block;
+            height: 100%;
+            width: auto;
+            min-width: 100%;
+            pointer-events: all;
+        }
+
+        @media (max-width: 1024px) {
+            .map-container {
+                height: 50vh;
+                min-height: 300px;
+                border-radius: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                max-width: 100vw;
+                border-radius: 0;
+                height: 45vh;
+                min-height: 250px;
+                border-left: none;
+                border-right: none;
+            }
+        }
+
+        /* Scrollbar */
+        .map-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .map-container::-webkit-scrollbar-track {
+            background: rgba(30, 27, 75, 0.5);
+        }
+        .map-container::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 3px;
+        }
+
+        /* Banks panel */
+        .banks-panel {
+            background: rgba(30, 27, 75, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 65vh;
+            min-height: 400px;
+        }
+
+        @media (max-width: 1024px) {
+            .banks-panel {
+                height: auto;
+                max-height: 60vh;
+                min-height: 300px;
+            }
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            flex-shrink: 0;
+        }
+
+        .panel-content {
+            overflow-y: auto;
+            flex: 1;
+            padding: 8px 12px;
+        }
+
+        .panel-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .panel-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .panel-content::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Bank row */
+        .bank-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            gap: 12px;
+            cursor: default;
+        }
+
+        .bank-row:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .bank-rank {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .bank-rank.gold { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .bank-rank.silver { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+        .bank-rank.bronze { background: rgba(217, 119, 6, 0.2); color: #f59e0b; }
+        .bank-rank.normal { background: rgba(99, 102, 241, 0.1); color: rgba(255,255,255,0.5); }
+
+        .bank-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bank-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bank-country-tag {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .bank-mcap {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a5b4fc;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .bank-assets {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+        }
+
+        /* Back button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        /* Country header in panel */
+        .country-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .country-flag {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .country-panel-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .country-panel-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Legend */
+        .map-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            justify-content: center;
+            padding: 8px 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .legend-box {
+            width: 14px;
+            height: 10px;
+            border-radius: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Source footer */
+        .source-footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .source-footer a {
+            color: rgba(165, 180, 252, 0.6);
+            text-decoration: none;
+        }
+
+        .source-footer a:hover {
+            color: #a5b4fc;
+            text-decoration: underline;
+        }
+
+        /* Panel fade transition */
+        .panel-fade-enter {
+            animation: panelFadeIn 0.25s ease-out;
+        }
+
+        @keyframes panelFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Active country indicator on map */
+        .country-active-indicator {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(20, 24, 40, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            display: none;
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        /* Search bar */
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 8px 12px 8px 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(30, 27, 75, 0.5);
+            color: #fff;
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-bar input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1a2634] border-b border-gray-800" style="backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text" style="background-clip: text; -webkit-background-clip: text;">Payment Infos</h1>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex space-x-4">
+                    <a href="index.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        European Map
+                    </a>
+                    <a href="european_banks.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        European Banks
+                    </a>
+                    <a href="merchant_fees.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Merchant Fees
+                    </a>
+                    <a href="bank_offers.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Bank Offers
+                    </a>
+                    <a href="compare.html" class="nav-link px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+                        Comparateur
+                    </a>
+                </div>
+
+                <!-- Mobile Navigation Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-300 hover:text-white p-2 rounded-lg transition-colors">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 absolute w-full bg-[#1a2634] shadow-lg">
+            <div class="px-2 pt-2 pb-3 space-y-2">
+                <a href="index.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    European Map
+                </a>
+                <a href="european_banks.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    European Banks
+                </a>
+                <a href="merchant_fees.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Merchant Fees
+                </a>
+                <a href="bank_offers.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Bank Offers
+                </a>
+                <a href="compare.html" class="nav-link block px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-center transition-colors">
+                    Comparateur
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="w-full px-4 md:px-6 lg:px-8 mt-3 md:mt-6 max-w-7xl mx-auto">
+        <h1 class="text-2xl md:text-3xl font-bold text-center mb-2 bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent" style="background-clip: text; -webkit-background-clip: text;">European Banks</h1>
+        <p class="text-center text-sm text-gray-400 mb-4">Click on a country to see its largest banks</p>
+
+        <!-- Two-column layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
+            <!-- Left: Map -->
+            <div class="lg:col-span-3">
+                <div class="map-container" style="position: relative;">
+                    <div style="width: 100%; height: 100%; display: flex; justify-content: flex-start; align-items: center; pointer-events: none;">
+                        <object id="mapObject" data="europe.svg" type="image/svg+xml" style="pointer-events: all;"></object>
+                    </div>
+                    <div class="country-active-indicator" id="mapIndicator"></div>
+                </div>
+                <div class="map-legend mt-2">
+                    <div class="legend-item"><div class="legend-box" style="background: #6366f1;"></div> Major banking hub</div>
+                    <div class="legend-item"><div class="legend-box" style="background: #818cf8; opacity: 0.7;"></div> Significant sector</div>
+                    <div class="legend-item"><div class="legend-box" style="background: #a5b4fc; opacity: 0.5;"></div> Smaller market</div>
+                </div>
+            </div>
+
+            <!-- Right: Banks Panel -->
+            <div class="lg:col-span-2">
+                <div class="banks-panel" id="banksPanel">
+                    <div class="panel-header" id="panelHeader">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">
+                                <i class="fas fa-trophy" style="color: #fbbf24; margin-right: 6px;"></i>Top 20 European Banks
+                            </h2>
+                            <span style="font-size: 11px; color: rgba(255,255,255,0.4);">by market cap</span>
+                        </div>
+                        <div class="search-bar mt-2" id="searchContainer">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Search a bank...">
+                        </div>
+                    </div>
+                    <div class="panel-content" id="panelContent">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sources -->
+        <div class="source-footer mt-6 mb-4">
+            Sources: <a href="https://www.spglobal.com/market-intelligence/en/news-insights/articles/2025/4/europes-50-largest-banks-by-assets-2025-88404022" target="_blank">S&P Global 2025</a> &middot;
+            <a href="https://www.msci.com/www/index-factsheets/msci-europe-banks-index/0454557258" target="_blank">MSCI Europe Banks Index</a> &middot;
+            <a href="https://www.statista.com/statistics/382818/leading-banks-in-europe-by-market-capitalization/" target="_blank">Statista</a> &middot;
+            <a href="https://en.wikipedia.org/wiki/List_of_banks_in_Europe" target="_blank">Wikipedia</a>
+            <br>Market cap data as of Q4 2025. Total assets from S&P Global (Dec 2024).
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ─── COUNTRY DATA ──────────────────────────────────────────────
+        const countryNames = {
+            DEU: 'Germany', FRA: 'France', BEL: 'Belgium', NLD: 'Netherlands',
+            LUX: 'Luxembourg', AUT: 'Austria', ITA: 'Italy', ESP: 'Spain',
+            PRT: 'Portugal', NOR: 'Norway', DNK: 'Denmark', FIN: 'Finland',
+            SWE: 'Sweden', POL: 'Poland', GRC: 'Greece', CHE: 'Switzerland',
+            GBR: 'United Kingdom', SRB: 'Serbia', BGR: 'Bulgaria',
+            SVK: 'Slovakia', IRL: 'Ireland', ROU: 'Romania', HRV: 'Croatia',
+            CZE: 'Czech Republic', HUN: 'Hungary', LTU: 'Lithuania',
+            LVA: 'Latvia', EST: 'Estonia', SVN: 'Slovenia',
+            ISL: 'Iceland', MDA: 'Moldova', ALB: 'Albania',
+            MKD: 'North Macedonia', MNE: 'Montenegro', BIH: 'Bosnia & Herzegovina'
+        };
+
+        const countryFlags = {
+            GBR: '\u{1F1EC}\u{1F1E7}', FRA: '\u{1F1EB}\u{1F1F7}', DEU: '\u{1F1E9}\u{1F1EA}',
+            ESP: '\u{1F1EA}\u{1F1F8}', ITA: '\u{1F1EE}\u{1F1F9}', CHE: '\u{1F1E8}\u{1F1ED}',
+            NLD: '\u{1F1F3}\u{1F1F1}', BEL: '\u{1F1E7}\u{1F1EA}', SWE: '\u{1F1F8}\u{1F1EA}',
+            DNK: '\u{1F1E9}\u{1F1F0}', NOR: '\u{1F1F3}\u{1F1F4}', FIN: '\u{1F1EB}\u{1F1EE}',
+            AUT: '\u{1F1E6}\u{1F1F9}', POL: '\u{1F1F5}\u{1F1F1}', PRT: '\u{1F1F5}\u{1F1F9}',
+            IRL: '\u{1F1EE}\u{1F1EA}', GRC: '\u{1F1EC}\u{1F1F7}', CZE: '\u{1F1E8}\u{1F1FF}',
+            ROU: '\u{1F1F7}\u{1F1F4}', HUN: '\u{1F1ED}\u{1F1FA}', HRV: '\u{1F1ED}\u{1F1F7}',
+            LUX: '\u{1F1F1}\u{1F1FA}', ISL: '\u{1F1EE}\u{1F1F8}', SVN: '\u{1F1F8}\u{1F1EE}',
+            LTU: '\u{1F1F1}\u{1F1F9}', LVA: '\u{1F1F1}\u{1F1FB}', EST: '\u{1F1EA}\u{1F1EA}',
+            BGR: '\u{1F1E7}\u{1F1EC}', SRB: '\u{1F1F7}\u{1F1F8}', SVK: '\u{1F1F8}\u{1F1F0}',
+            MKD: '\u{1F1F2}\u{1F1F0}', MNE: '\u{1F1F2}\u{1F1EA}', BIH: '\u{1F1E7}\u{1F1E6}',
+            MDA: '\u{1F1F2}\u{1F1E9}', ALB: '\u{1F1E6}\u{1F1F1}'
+        };
+
+        // ─── TOP 20 EUROPEAN BANKS (by market cap, Q4 2025) ─────────
+        // Sources: MSCI Europe Banks Index (Dec 31, 2025), S&P Global, CompaniesMarketCap
+        const topEuropeanBanks = [
+            { rank: 1,  name: 'HSBC Holdings',       country: 'GBR', marketCap: 231, assets: 2990 },
+            { rank: 2,  name: 'Banco Santander',      country: 'ESP', marketCap: 150, assets: 1840 },
+            { rank: 3,  name: 'UBS Group',             country: 'CHE', marketCap: 97,  assets: 1717 },
+            { rank: 4,  name: 'UniCredit',             country: 'ITA', marketCap: 99,  assets: 995 },
+            { rank: 5,  name: 'BBVA',                  country: 'ESP', marketCap: 116, assets: 775 },
+            { rank: 6,  name: 'Intesa Sanpaolo',       country: 'ITA', marketCap: 84,  assets: 975 },
+            { rank: 7,  name: 'BNP Paribas',           country: 'FRA', marketCap: 81,  assets: 2680 },
+            { rank: 8,  name: 'Barclays',              country: 'GBR', marketCap: 76,  assets: 1500 },
+            { rank: 9,  name: 'ING Group',             country: 'NLD', marketCap: 73,  assets: 1000 },
+            { rank: 10, name: 'Lloyds Banking Group',  country: 'GBR', marketCap: 67,  assets: 940 },
+            { rank: 11, name: 'NatWest Group',         country: 'GBR', marketCap: 60,  assets: 770 },
+            { rank: 12, name: 'Cr\u00e9dit Agricole',  country: 'FRA', marketCap: 55,  assets: 2476 },
+            { rank: 13, name: 'Nordea',                country: 'FIN', marketCap: 48,  assets: 623 },
+            { rank: 14, name: 'Deutsche Bank',         country: 'DEU', marketCap: 45,  assets: 1470 },
+            { rank: 15, name: 'CaixaBank',             country: 'ESP', marketCap: 43,  assets: 623 },
+            { rank: 16, name: 'Standard Chartered',    country: 'GBR', marketCap: 32,  assets: 820 },
+            { rank: 17, name: 'Soci\u00e9t\u00e9 G\u00e9n\u00e9rale', country: 'FRA', marketCap: 30, assets: 1530 },
+            { rank: 18, name: 'KBC Group',             country: 'BEL', marketCap: 35,  assets: 355 },
+            { rank: 19, name: 'Danske Bank',           country: 'DNK', marketCap: 30,  assets: 590 },
+            { rank: 20, name: 'Commerzbank',           country: 'DEU', marketCap: 28,  assets: 500 }
+        ];
+
+        // ─── PER-COUNTRY BANK DATA ──────────────────────────────────
+        // Sources: S&P Global 2025, thebanks.eu, Wikipedia, Statista, Global Finance Magazine
+        const countryBanks = {
+            GBR: {
+                banks: [
+                    { name: 'HSBC Holdings', assets: 2990, marketCap: 231 },
+                    { name: 'Barclays', assets: 1500, marketCap: 76 },
+                    { name: 'Lloyds Banking Group', assets: 940, marketCap: 67 },
+                    { name: 'NatWest Group', assets: 770, marketCap: 60 },
+                    { name: 'Standard Chartered', assets: 820, marketCap: 32 },
+                    { name: 'Nationwide Building Society', assets: 315 },
+                    { name: 'Virgin Money', assets: 95 }
+                ],
+                tier: 3
+            },
+            FRA: {
+                banks: [
+                    { name: 'BNP Paribas', assets: 2680, marketCap: 81 },
+                    { name: 'Cr\u00e9dit Agricole Group', assets: 2476, marketCap: 55 },
+                    { name: 'Soci\u00e9t\u00e9 G\u00e9n\u00e9rale', assets: 1530, marketCap: 30 },
+                    { name: 'Groupe BPCE', assets: 1647 },
+                    { name: 'Cr\u00e9dit Mutuel Group', assets: 1252 },
+                    { name: 'La Banque Postale', assets: 805 }
+                ],
+                tier: 3
+            },
+            DEU: {
+                banks: [
+                    { name: 'Deutsche Bank', assets: 1470, marketCap: 45 },
+                    { name: 'DZ Bank', assets: 670 },
+                    { name: 'KfW', assets: 590 },
+                    { name: 'Commerzbank', assets: 500, marketCap: 28 },
+                    { name: 'Landesbank Baden-W\u00fcrttemberg', assets: 370 },
+                    { name: 'Bayerische Landesbank', assets: 275 }
+                ],
+                tier: 3
+            },
+            ESP: {
+                banks: [
+                    { name: 'Banco Santander', assets: 1840, marketCap: 150 },
+                    { name: 'BBVA', assets: 775, marketCap: 116 },
+                    { name: 'CaixaBank', assets: 623, marketCap: 43 },
+                    { name: 'Banco Sabadell', assets: 265, marketCap: 14 },
+                    { name: 'Bankinter', assets: 113, marketCap: 10 }
+                ],
+                tier: 3
+            },
+            ITA: {
+                banks: [
+                    { name: 'UniCredit', assets: 995, marketCap: 99 },
+                    { name: 'Intesa Sanpaolo', assets: 975, marketCap: 84 },
+                    { name: 'Mediobanca', assets: 95, marketCap: 14 },
+                    { name: 'Banco BPM', assets: 215, marketCap: 12 },
+                    { name: 'Monte dei Paschi di Siena', assets: 145, marketCap: 9 }
+                ],
+                tier: 3
+            },
+            CHE: {
+                banks: [
+                    { name: 'UBS Group', assets: 1717, marketCap: 97 },
+                    { name: 'Raiffeisen Schweiz', assets: 275 },
+                    { name: 'Z\u00fcrcher Kantonalbank', assets: 210 },
+                    { name: 'Julius B\u00e4r', assets: 110, marketCap: 14 },
+                    { name: 'PostFinance', assets: 120 }
+                ],
+                tier: 3
+            },
+            NLD: {
+                banks: [
+                    { name: 'ING Group', assets: 1000, marketCap: 73 },
+                    { name: 'Rabobank', assets: 680 },
+                    { name: 'ABN AMRO', assets: 430, marketCap: 17 },
+                    { name: 'de Volksbank', assets: 85 },
+                    { name: 'Triodos Bank', assets: 17 }
+                ],
+                tier: 2
+            },
+            BEL: {
+                banks: [
+                    { name: 'KBC Group', assets: 355, marketCap: 35 },
+                    { name: 'Belfius Bank', assets: 209 },
+                    { name: 'BNP Paribas Fortis', assets: 310 },
+                    { name: 'ING Belgium', assets: 115 },
+                    { name: 'Argenta', assets: 55 }
+                ],
+                tier: 2
+            },
+            SWE: {
+                banks: [
+                    { name: 'SEB', assets: 410, marketCap: 30 },
+                    { name: 'Swedbank', assets: 310, marketCap: 24 },
+                    { name: 'Handelsbanken', assets: 370, marketCap: 22 },
+                    { name: 'Skandiabanken', assets: 18 }
+                ],
+                tier: 2
+            },
+            DNK: {
+                banks: [
+                    { name: 'Danske Bank', assets: 590, marketCap: 30 },
+                    { name: 'Nykredit', assets: 250 },
+                    { name: 'Jyske Bank', assets: 120, marketCap: 7 },
+                    { name: 'Sydbank', assets: 30, marketCap: 4 }
+                ],
+                tier: 2
+            },
+            NOR: {
+                banks: [
+                    { name: 'DNB', assets: 370, marketCap: 35 },
+                    { name: 'SpareBank 1 SR-Bank', assets: 45, marketCap: 4 },
+                    { name: 'SpareBank 1 SMN', assets: 30, marketCap: 3 },
+                    { name: 'Storebrand Bank', assets: 10 }
+                ],
+                tier: 2
+            },
+            FIN: {
+                banks: [
+                    { name: 'Nordea', assets: 623, marketCap: 48 },
+                    { name: 'OP Financial Group', assets: 200 },
+                    { name: 'Aktia Bank', assets: 15, marketCap: 1 }
+                ],
+                tier: 2
+            },
+            AUT: {
+                banks: [
+                    { name: 'Erste Group', assets: 340, marketCap: 25 },
+                    { name: 'Raiffeisen Bank International', assets: 228, marketCap: 9 },
+                    { name: 'BAWAG Group', assets: 60, marketCap: 7 },
+                    { name: 'Oberbank', assets: 28 }
+                ],
+                tier: 2
+            },
+            POL: {
+                banks: [
+                    { name: 'PKO Bank Polski', assets: 105, marketCap: 20 },
+                    { name: 'Bank Pekao', assets: 75, marketCap: 12 },
+                    { name: 'mBank', assets: 55, marketCap: 8 },
+                    { name: 'ING Bank \u015Al\u0105ski', assets: 50, marketCap: 7 },
+                    { name: 'Santander Bank Polska', assets: 65, marketCap: 7 }
+                ],
+                tier: 2
+            },
+            PRT: {
+                banks: [
+                    { name: 'Caixa Geral de Dep\u00f3sitos', assets: 99 },
+                    { name: 'Millennium BCP', assets: 68, marketCap: 8 },
+                    { name: 'Novo Banco', assets: 41 },
+                    { name: 'Banco Santander Totta', assets: 57 },
+                    { name: 'Banco BPI', assets: 42 }
+                ],
+                tier: 1
+            },
+            IRL: {
+                banks: [
+                    { name: 'Bank of Ireland', assets: 160, marketCap: 10 },
+                    { name: 'AIB Group', assets: 136, marketCap: 12 },
+                    { name: 'Permanent TSB', assets: 30, marketCap: 2 }
+                ],
+                tier: 1
+            },
+            GRC: {
+                banks: [
+                    { name: 'Eurobank', assets: 82, marketCap: 10 },
+                    { name: 'Alpha Bank', assets: 73, marketCap: 8 },
+                    { name: 'National Bank of Greece', assets: 80, marketCap: 10 },
+                    { name: 'Piraeus Bank', assets: 75, marketCap: 7 }
+                ],
+                tier: 1
+            },
+            CZE: {
+                banks: [
+                    { name: '\u010cesk\u00e1 spo\u0159itelna (Erste)', assets: 85 },
+                    { name: '\u010cSOB', assets: 80 },
+                    { name: 'Komer\u010dn\u00ed banka (SocGen)', assets: 68 },
+                    { name: 'UniCredit Bank CZ', assets: 30 },
+                    { name: 'Raiffeisenbank CZ', assets: 34 }
+                ],
+                tier: 1
+            },
+            ROU: {
+                banks: [
+                    { name: 'Banca Transilvania', assets: 33, marketCap: 6 },
+                    { name: 'BCR (Erste)', assets: 22 },
+                    { name: 'BRD (Soci\u00e9t\u00e9 G\u00e9n\u00e9rale)', assets: 21 },
+                    { name: 'Raiffeisen Romania', assets: 22 },
+                    { name: 'CEC Bank', assets: 17 }
+                ],
+                tier: 1
+            },
+            HUN: {
+                banks: [
+                    { name: 'OTP Bank', assets: 75, marketCap: 22 },
+                    { name: 'MBH Bank', assets: 25 },
+                    { name: 'K&H Bank (KBC)', assets: 17 },
+                    { name: 'UniCredit Hungary', assets: 14 },
+                    { name: 'Erste Bank Hungary', assets: 13 }
+                ],
+                tier: 1
+            },
+            HRV: {
+                banks: [
+                    { name: 'Zagreba\u010dka banka (UniCredit)', assets: 21 },
+                    { name: 'Privredna banka Zagreb (Intesa)', assets: 17 },
+                    { name: 'Erste & Steiermark Croatia', assets: 15 },
+                    { name: 'OTP banka Croatia', assets: 9 },
+                    { name: 'Hrvatska po\u0161tanska banka', assets: 5 }
+                ],
+                tier: 1
+            },
+            LUX: {
+                banks: [
+                    { name: 'BGL BNP Paribas', assets: 60 },
+                    { name: "Banque et Caisse d'\u00c9pargne de l'\u00c9tat", assets: 55 },
+                    { name: 'Banque de Luxembourg', assets: 25 }
+                ],
+                tier: 1
+            },
+            ISL: {
+                banks: [
+                    { name: 'Landsbank\u00ednn', assets: 15 },
+                    { name: '\u00cdslandsbanki', assets: 13, marketCap: 2 },
+                    { name: 'Arion Bank', assets: 11, marketCap: 2 }
+                ],
+                tier: 1
+            },
+            SVN: {
+                banks: [
+                    { name: 'NLB (Nova Ljubljanska Banka)', assets: 22, marketCap: 3 },
+                    { name: 'Nova KBM (OTP)', assets: 10 },
+                    { name: 'SKB Banka (OTP)', assets: 5 }
+                ],
+                tier: 1
+            },
+            LTU: {
+                banks: [
+                    { name: 'SEB Bank Lithuania', assets: 12 },
+                    { name: 'Swedbank Lithuania', assets: 11 },
+                    { name: 'Luminor Bank', assets: 8 }
+                ],
+                tier: 1
+            },
+            LVA: {
+                banks: [
+                    { name: 'Swedbank Latvia', assets: 8 },
+                    { name: 'SEB banka', assets: 6 },
+                    { name: 'Citadele banka', assets: 5 }
+                ],
+                tier: 1
+            },
+            EST: {
+                banks: [
+                    { name: 'Swedbank Estonia', assets: 12 },
+                    { name: 'SEB Estonia', assets: 8 },
+                    { name: 'LHV Group', assets: 7, marketCap: 2 }
+                ],
+                tier: 1
+            },
+            BGR: {
+                banks: [
+                    { name: 'UniCredit Bulbank', assets: 12 },
+                    { name: 'DSK Bank (OTP)', assets: 10 },
+                    { name: 'United Bulgarian Bank (KBC)', assets: 7 }
+                ],
+                tier: 1
+            },
+            SRB: {
+                banks: [
+                    { name: 'Banca Intesa Belgrade', assets: 8 },
+                    { name: 'UniCredit Serbia', assets: 5 },
+                    { name: 'Raiffeisen Serbia', assets: 4 }
+                ],
+                tier: 1
+            },
+            SVK: {
+                banks: [
+                    { name: 'Slovensk\u00e1 sporite\u013e\u0148a (Erste)', assets: 25 },
+                    { name: 'V\u00daB (Intesa)', assets: 18 },
+                    { name: 'Tatra banka (Raiffeisen)', assets: 18 }
+                ],
+                tier: 1
+            },
+            MKD: {
+                banks: [
+                    { name: 'Komercijalna Banka', assets: 3 },
+                    { name: 'NLB Banka Skopje', assets: 2 },
+                    { name: 'Stopanska Banka (NLB)', assets: 2 }
+                ],
+                tier: 1
+            },
+            MNE: {
+                banks: [
+                    { name: 'CKB (OTP)', assets: 2 },
+                    { name: 'NLB Montenegro', assets: 1 },
+                    { name: 'Erste Bank Montenegro', assets: 1 }
+                ],
+                tier: 1
+            },
+            BIH: {
+                banks: [
+                    { name: 'UniCredit Sarajevo', assets: 4 },
+                    { name: 'Raiffeisen BiH', assets: 4 },
+                    { name: 'NLB Banka Sarajevo', assets: 2 }
+                ],
+                tier: 1
+            }
+        };
+
+        // ─── MAP COLORS PER TIER ────────────────────────────────────
+        const tierColors = {
+            3: { color: '#6366f1', opacity: 0.85 },  // Major hub
+            2: { color: '#818cf8', opacity: 0.65 },  // Significant
+            1: { color: '#a5b4fc', opacity: 0.45 }   // Smaller
+        };
+
+        const GREY = '#2a2a45';
+        const GREY_OPACITY = 0.2;
+
+        // ─── STATE ──────────────────────────────────────────────────
+        const mapObject = document.getElementById('mapObject');
+        const panelHeader = document.getElementById('panelHeader');
+        const panelContent = document.getElementById('panelContent');
+        const searchInput = document.getElementById('searchInput');
+        const searchContainer = document.getElementById('searchContainer');
+        const mapIndicator = document.getElementById('mapIndicator');
+
+        let svgDoc = null;
+        let activeCountry = null;
+        let selectedCountryCode = null;
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // ─── RENDER FUNCTIONS ───────────────────────────────────────
+
+        function getRankClass(rank) {
+            if (rank === 1) return 'gold';
+            if (rank === 2) return 'silver';
+            if (rank === 3) return 'bronze';
+            return 'normal';
+        }
+
+        function formatValue(val, unit) {
+            if (!val) return '';
+            if (val >= 1000) return (val / 1000).toFixed(1) + 'T' + (unit ? ' ' + unit : '');
+            return val + 'B' + (unit ? ' ' + unit : '');
+        }
+
+        function renderGlobalRanking(filter) {
+            let banks = topEuropeanBanks;
+            if (filter) {
+                const q = filter.toLowerCase();
+                banks = banks.filter(b =>
+                    b.name.toLowerCase().includes(q) ||
+                    (countryNames[b.country] || '').toLowerCase().includes(q)
+                );
+            }
+
+            if (banks.length === 0) {
+                panelContent.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.4);font-size:13px;"><i class="fas fa-search" style="font-size:24px;display:block;margin-bottom:8px;"></i>No results</div>';
+                return;
+            }
+
+            panelContent.innerHTML = banks.map(bank => `
+                <div class="bank-row">
+                    <div class="bank-rank ${getRankClass(bank.rank)}">${bank.rank}</div>
+                    <div class="bank-info">
+                        <div class="bank-name">${bank.name}</div>
+                        <div class="bank-country-tag">${countryFlags[bank.country] || ''} ${countryNames[bank.country] || bank.country}</div>
+                    </div>
+                    <div>
+                        <div class="bank-mcap">\u20ac${bank.marketCap}B</div>
+                        <div class="bank-assets">${formatValue(bank.assets, '')} assets</div>
+                    </div>
+                </div>
+            `).join('');
+
+            panelContent.classList.add('panel-fade-enter');
+            setTimeout(() => panelContent.classList.remove('panel-fade-enter'), 300);
+        }
+
+        function renderCountryBanks(cc) {
+            const data = countryBanks[cc];
+            if (!data) return;
+
+            const flag = countryFlags[cc] || '';
+            const name = countryNames[cc] || cc;
+
+            searchContainer.style.display = 'none';
+
+            panelHeader.innerHTML = `
+                <button class="back-btn" id="backBtn">
+                    <i class="fas fa-arrow-left"></i> Top 20 ranking
+                </button>
+                <div class="country-panel-header" style="margin-top: 12px;">
+                    <span class="country-flag">${flag}</span>
+                    <div>
+                        <div class="country-panel-name">${name}</div>
+                        <div class="country-panel-subtitle">${data.banks.length} largest banks by total assets</div>
+                    </div>
+                </div>
+            `;
+
+            panelContent.innerHTML = data.banks.map((bank, i) => `
+                <div class="bank-row">
+                    <div class="bank-rank ${getRankClass(i + 1)}">${i + 1}</div>
+                    <div class="bank-info">
+                        <div class="bank-name">${bank.name}</div>
+                    </div>
+                    <div>
+                        ${bank.marketCap ? `<div class="bank-mcap">\u20ac${bank.marketCap}B</div>` : ''}
+                        <div class="bank-assets">${formatValue(bank.assets, '')} assets</div>
+                    </div>
+                </div>
+            `).join('');
+
+            panelContent.classList.add('panel-fade-enter');
+            setTimeout(() => panelContent.classList.remove('panel-fade-enter'), 300);
+
+            document.getElementById('backBtn').addEventListener('click', () => {
+                showGlobalView();
+                if (activeCountry && svgDoc) {
+                    colorSingleCountry(activeCountry.id.substring(1));
+                    activeCountry = null;
+                    selectedCountryCode = null;
+                }
+                mapIndicator.style.display = 'none';
+            });
+        }
+
+        function showGlobalView() {
+            panelHeader.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">
+                        <i class="fas fa-trophy" style="color: #fbbf24; margin-right: 6px;"></i>Top 20 European Banks
+                    </h2>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.4);">by market cap</span>
+                </div>
+                <div class="search-bar mt-2" id="searchContainer">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search a bank...">
+                </div>
+            `;
+
+            const newSearchInput = document.getElementById('searchInput');
+            newSearchInput.addEventListener('input', () => {
+                renderGlobalRanking(newSearchInput.value);
+            });
+
+            renderGlobalRanking();
+        }
+
+        // ─── MAP COLORING ───────────────────────────────────────────
+
+        function colorMap() {
+            if (!svgDoc) return;
+            const allGroups = svgDoc.querySelectorAll('g[id^="g"]');
+            allGroups.forEach(group => {
+                const cc = group.id.substring(1);
+                if (cc.length !== 3) return;
+                colorSingleCountry(cc);
+            });
+        }
+
+        function colorSingleCountry(cc) {
+            if (!svgDoc) return;
+            const el = svgDoc.getElementById('g' + cc);
+            if (!el) return;
+
+            const shapes = el.querySelectorAll('path, polygon');
+            if (shapes.length === 0) return;
+
+            let color = GREY;
+            let opacity = GREY_OPACITY;
+            let clickable = false;
+
+            if (countryBanks[cc]) {
+                const tier = countryBanks[cc].tier || 1;
+                color = tierColors[tier].color;
+                opacity = tierColors[tier].opacity;
+                clickable = true;
+            }
+
+            shapes.forEach(shape => {
+                shape.style.cssText = `
+                    fill: ${color} !important;
+                    stroke: ${color} !important;
+                    stroke-width: ${clickable ? '1px' : '0.5px'} !important;
+                    opacity: ${opacity} !important;
+                    filter: brightness(${clickable ? '1' : '0.7'}) !important;
+                    transition: all 0.4s ease !important;
+                    pointer-events: ${clickable ? 'all' : 'none'} !important;
+                    cursor: ${clickable ? 'pointer' : 'default'} !important;
+                `;
+            });
+        }
+
+        function highlightCountry(el, color) {
+            const shapes = el.querySelectorAll('path, polygon');
+            shapes.forEach(shape => {
+                shape.style.cssText = `
+                    fill: ${color} !important;
+                    stroke: ${color} !important;
+                    stroke-width: 1.5px !important;
+                    opacity: 1 !important;
+                    filter: brightness(1.3) drop-shadow(0 0 8px ${color}) !important;
+                    transition: all 0.2s ease !important;
+                    cursor: pointer !important;
+                    pointer-events: all !important;
+                `;
+            });
+        }
+
+        // ─── CLICK HANDLER ──────────────────────────────────────────
+
+        function handleCountryClick(cc) {
+            if (!countryBanks[cc]) return;
+
+            const el = svgDoc.getElementById('g' + cc);
+            if (!el) return;
+
+            // Toggle off if same country
+            if (selectedCountryCode === cc) {
+                showGlobalView();
+                colorSingleCountry(cc);
+                activeCountry = null;
+                selectedCountryCode = null;
+                mapIndicator.style.display = 'none';
+                return;
+            }
+
+            // Reset previous
+            if (activeCountry) {
+                colorSingleCountry(activeCountry.id.substring(1));
+            }
+
+            // Highlight new
+            const tier = countryBanks[cc].tier || 1;
+            highlightCountry(el, tierColors[tier].color);
+            activeCountry = el;
+            selectedCountryCode = cc;
+
+            // Show country banks
+            renderCountryBanks(cc);
+
+            // Update map indicator
+            mapIndicator.textContent = `${countryFlags[cc] || ''} ${countryNames[cc] || cc}`;
+            mapIndicator.style.display = 'block';
+        }
+
+        // ─── SVG LOAD ───────────────────────────────────────────────
+
+        let isDragging = false;
+        let startX;
+        let scrollLeft;
+
+        mapObject.addEventListener('load', () => {
+            svgDoc = mapObject.contentDocument;
+            if (!svgDoc) return;
+
+            const svgElement = svgDoc.querySelector('svg');
+            if (!svgElement) return;
+
+            const container = document.querySelector('.map-container');
+
+            // Inject transition style
+            const styleEl = document.createElement('style');
+            styleEl.textContent = 'path, polygon { transition: all 0.4s ease; }';
+            svgElement.appendChild(styleEl);
+
+            // ── Pan / drag ──────────────────────────────────────────
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                container.style.cursor = 'grabbing';
+                startX = e.pageX - container.offsetLeft;
+                scrollLeft = container.scrollLeft;
+            });
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                container.scrollLeft = scrollLeft - (x - startX) * 2;
+            });
+            container.addEventListener('mouseup', () => { isDragging = false; container.style.cursor = 'grab'; });
+            container.addEventListener('mouseleave', () => { isDragging = false; container.style.cursor = 'grab'; });
+
+            container.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                startX = e.touches[0].pageX - container.offsetLeft;
+                scrollLeft = container.scrollLeft;
+            }, { passive: true });
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const x = e.touches[0].pageX - container.offsetLeft;
+                container.scrollLeft = scrollLeft - (x - startX) * 2;
+            }, { passive: true });
+            container.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
+
+            // ── Bind events to countries with bank data ──────────────
+            const countryCodes = Object.keys(countryBanks);
+
+            countryCodes.forEach(cc => {
+                const el = svgDoc.getElementById('g' + cc);
+                if (!el) return;
+
+                if (isMobileDevice) {
+                    el.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCountryClick(cc);
+                    }, { passive: false });
+                } else {
+                    let hoverTimeout;
+
+                    el.addEventListener('mouseenter', () => {
+                        clearTimeout(hoverTimeout);
+                        if (activeCountry !== el) {
+                            const tier = countryBanks[cc].tier || 1;
+                            highlightCountry(el, tierColors[tier].color);
+                        }
+                    });
+
+                    el.addEventListener('mouseleave', () => {
+                        if (activeCountry !== el) {
+                            hoverTimeout = setTimeout(() => colorSingleCountry(cc), 50);
+                        }
+                    });
+
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        clearTimeout(hoverTimeout);
+                        handleCountryClick(cc);
+                    });
+                }
+            });
+
+            // ── Outside click resets ─────────────────────────────────
+            const handleOutside = (e) => {
+                if (!activeCountry || !selectedCountryCode) return;
+                const target = e.target || (e.touches && e.touches[0] && e.touches[0].target);
+
+                const panel = document.getElementById('banksPanel');
+                if (panel && panel.contains(target)) return;
+
+                const isOnCountry = countryCodes.some(cc => {
+                    let node = target;
+                    while (node && node !== svgDoc) {
+                        if (node.id === 'g' + cc) return true;
+                        node = node.parentElement;
+                    }
+                    return false;
+                });
+
+                if (!isOnCountry) {
+                    showGlobalView();
+                    if (activeCountry) {
+                        colorSingleCountry(activeCountry.id.substring(1));
+                        activeCountry = null;
+                        selectedCountryCode = null;
+                    }
+                    mapIndicator.style.display = 'none';
+                }
+            };
+
+            if (isMobileDevice) {
+                document.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    if (touch) handleOutside({ target: touch.target });
+                }, { passive: true });
+            } else {
+                document.addEventListener('click', handleOutside);
+                svgDoc.addEventListener('click', handleOutside);
+            }
+
+            // ── Escape key ───────────────────────────────────────────
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && selectedCountryCode) {
+                    showGlobalView();
+                    if (activeCountry) {
+                        colorSingleCountry(activeCountry.id.substring(1));
+                        activeCountry = null;
+                        selectedCountryCode = null;
+                    }
+                    mapIndicator.style.display = 'none';
+                }
+            });
+
+            // Initial color
+            colorMap();
+        });
+
+        // ─── INITIAL RENDER ─────────────────────────────────────────
+        renderGlobalRanking();
+
+        searchInput.addEventListener('input', () => {
+            renderGlobalRanking(searchInput.value);
+        });
+    });
+    </script>
+
+    <!-- Navigation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = mobileMenuButton.querySelector('svg');
+
+            let isMenuOpen = false;
+
+            mobileMenu.style.display = 'none';
+            mobileMenu.style.opacity = '0';
+            mobileMenu.style.transform = 'translateY(-8px)';
+
+            function closeMenu() {
+                requestAnimationFrame(() => {
+                    mobileMenu.classList.remove('show');
+                    document.body.classList.remove('menu-open');
+                    isMenuOpen = false;
+                    menuIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>`;
+                    mobileMenu.style.opacity = '0';
+                    mobileMenu.style.transform = 'translateY(-8px)';
+                    setTimeout(() => {
+                        if (!isMenuOpen) {
+                            mobileMenu.style.display = 'none';
+                            mobileMenu.style.opacity = '';
+                            mobileMenu.style.transform = '';
+                            document.body.classList.remove('menu-open');
+                        }
+                    }, 300);
+                });
+            }
+
+            window.addEventListener('beforeunload', () => {
+                if (isMenuOpen) document.body.classList.remove('menu-open');
+            });
+
+            mobileMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!isMenuOpen) {
+                    document.body.classList.remove('menu-open');
+                    mobileMenu.style.cssText = 'display: block !important; pointer-events: auto !important;';
+                    requestAnimationFrame(() => {
+                        mobileMenu.classList.add('show');
+                        document.body.classList.add('menu-open');
+                        isMenuOpen = true;
+                        menuIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>`;
+                    });
+                } else {
+                    closeMenu();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (isMenuOpen && !mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) closeMenu();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isMenuOpen) closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && isMenuOpen) closeMenu();
+            });
+
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => closeMenu());
+            });
+
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('href') === currentPage) link.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
